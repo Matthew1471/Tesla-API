@@ -123,5 +123,20 @@ class Gateway:
 
     @staticmethod
     def scale_soe(percentage):
+        """
+        Scale the battery percentage to reserve a 5% buffer.
+
+        The Tesla® App always shows the State Of Energy with a 5% reduction.
+        It needs this 5% buffer to keep the Gateway and Powerwall computers powered
+        when the grid is not available.
+
+        Args:
+            percentage (float): The battery percentage without a 5% buffer.
+
+        Returns:
+            float:
+                The battery percentage with a 5% number.
+        """
+
         # Tesla® App always reserves 5% of battery.
         return (percentage - 5) / 0.95
