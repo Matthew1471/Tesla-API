@@ -1,0 +1,117 @@
+= Python API Wrapper Documentation
+:toc:
+Matthew1471 <https://github.com/matthew1471[@Matthew1471]>;
+
+// Document Settings:
+
+// Set the ID Prefix and ID Separators to be consistent with GitHub so links work irrespective of rendering platform. (https://docs.asciidoctor.org/asciidoc/latest/sections/id-prefix-and-separator/)
+:idprefix:
+:idseparator: -
+
+// Any code examples will be in Python by default.
+:source-language: python
+
+ifndef::env-github[:icons: font]
+
+// Set the admonitions to have icons (Github Emojis) if rendered on GitHub (https://blog.mrhaki.com/2016/06/awesome-asciidoctor-using-admonition.html).
+ifdef::env-github[]
+:status:
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+// Document Variables:
+:release-version: 1.0
+:url-org: https://github.com/Matthew1471
+:url-repo: {url-org}/Tesla-API
+:url-contributors: {url-repo}/graphs/contributors
+
+== Introduction
+
+This unofficial API wrapper written in Python allows your applications to call the APIs and access information.
+
+More general details on the project are available from the link:../../../README.adoc[project's homepage].
+
+== Getting Started
+
+=== Dependencies
+
+The wrapper uses a single main third-party library. This can be installed by typing into your terminal:
+
+[source,bash]
+----
+pip install requests
+----
+
+=== Project Structure
+
+The main wrapper lives in the `src\tesla_api` folder and the files in the `examples` directory are example scripts to show how to use the library. The examples are written to be fairly feature complete and considered fairly protection ready, so they can be used as applications in their own right.
+
+For configuration, each example refers to a credential file in the folder `configuration`; to make the examples work you will need to edit `credentials.json` to include your Tesla(R) Gateway credentials.
+
+Some of the examples either put or get messages from an https://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol[Advanced Message Queuing Protocol (AMQP)] server/broker, this is because the Gateway is not designed for a large number of requests, so it is better to query the data once and then make it available for other consuming clients via a message queue rather than have multiple scripts repeatedly query the same data. A free, open source and recommended AMQP server that runs on a variety of platforms is https://www.rabbitmq.com/download.html[RabbitMQ(R)]
+
+=== Sample Code
+
+To make a call to the Gateway you can simply run code similar to the following:
+
+[source]
+----
+# All the shared Tesla® functions are in this package.
+from tesla_api.local.gateway import Gateway
+
+# Connection Variables.
+GATEWAY_HOST = 'https://192.168.0.100'
+GATEWAY_PASSWORD = 'eyJhbG'
+
+# Connect locally to the Gateway, login and request meter details.
+gateway = Gateway(GATEWAY_HOST)
+if gateway.login(GATEWAY_PASSWORD):
+    response = gateway.api_call('/api/meters/aggregates')
+    print(response)
+----
+
+WARNING: Note how the script connected to the gateway via HTTPS but yet did not protest about an invalid certificate? Unfortunately as the Certificate Authority (CA) certificate is not available the connection cannot be verified. Caution should be used using this API on untrusted networks.
+
+It is highly recommended you look at the examples in a text-editor to learn more about the features of the library (and to see how this flow is typically implemented).
+
+The IQ Gateway API endpoints are best documented elsewhere on https://github.com/vloschiavo/powerwall2[vloschiavo's powerwall2 project].
+
+== Examples
+
+[cols="1,1,1,1,2", options="header"]
+|===
+|Filename
+|Dependencies
+|Source Data
+|Output Data
+|Description
+
+|link:../../../Python/examples/amqp_database_meters.py[`amqp_database_meters.py`]
+|`mysql.connector` and `pika`
+|AMQP
+|MySQL(R)/MariaDB(R)
+|Consumes meter messages from AMQP and stores it in a MySQL(R)/MariaDB(R) database (schema is in the resources folder).
+
+|link:../../../Python/examples/amqp_unicorn_hat_hd.py[`amqp_unicorn_hat_hd.py`]
+|`pika` and `unicornhathd`
+|AMQP
+|https://shop.pimoroni.com/products/unicorn-hat-hd[Unicorn HAT HD]
+|Consumes meter messages from AMQP and displays production and consumption data on a https://shop.pimoroni.com/products/unicorn-hat-hd[Unicorn HAT HD] running on a https://www.raspberrypi.com/products/[Raspberry Pi].
+
+|link:../../../Python/examples/gateway_amqp_meters.py[`gateway_amqp_meters.py`]
+|`pika`
+|Gateway
+|AMQP
+|Obtains meter information and publishes it to AMQP for consumption and statistics in other systems.
+
+|link:../../../Python/examples/gateway_console.py[`gateway_console.py`]
+|None
+|Gateway
+|Console
+|Displays production data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+
+|===

@@ -1,0 +1,87 @@
+= Tesla-API
+:toc:
+Matthew1471 <https://github.com/matthew1471[@Matthew1471]>;
+
+// Document Settings:
+
+// Set the ID Prefix and ID Separators to be consistent with GitHub so links work irrespective of rendering platform. (https://docs.asciidoctor.org/asciidoc/latest/sections/id-prefix-and-separator/)
+:idprefix:
+:idseparator: -
+
+// Any code examples will be in Python by default.
+:source-language: python
+
+ifndef::env-github[:icons: font]
+
+// Set the admonitions to have icons (Github Emojis) if rendered on GitHub (https://blog.mrhaki.com/2016/06/awesome-asciidoctor-using-admonition.html).
+ifdef::env-github[]
+:status:
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+// Document Variables:
+:release-version: 1.0
+:url-org: https://github.com/Matthew1471
+:url-repo: {url-org}/Tesla-API
+:url-contributors: {url-repo}/graphs/contributors
+
+== Introduction
+
+Tesla-API is an unofficial project providing an API wrapper for Tesla(R)'s products and services.
+
+This project is focusing primarily on the Tesla(R) Gateway, the gateway for Tesla(R)'s Powerwall battery storage used to store solar panel and grid energy to be directly consumed by the home.
+
+WARNING: This project currently predominantly consumes the same local API that the local Gateway web administration portal consumes and Tesla(R) may choose to change it in subsequent updates without warning.
+
+There is no official route for production applications to use the Tesla data other than the https://www.tesla.com/en_gb/support/tesla-app[Tesla(R) App] and the https://www.tesla.com/en_gb/support/energy/powerwall/own/connecting-network[Tesla(R) web brower interface].
+
+== Documentation
+
+The documentation for the wrapper and the API itself is at link:Documentation/README.adoc[Documentation/README.adoc]
+
+== Copyright and License
+
+=== Code
+
+Copyright (C) 2023  Matthew1471
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+=== Documentation
+
+Copyright (C)  2023  Matthew1471.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the file link:Documentation/LICENSE.md[Documentation/LICENSE.md].
+
+== Authors
+
+*Tesla-API* is led by https://github.com/Matthew1471[Matthew1471] and may have received contributions from {url-contributors}[other individuals] in GitHub's awesome community.
+The project was initiated in 2023 by https://github.com/Matthew1471[Matthew1471] after having his own Powerwall(R) installation and wanting to know when the batteries are 100% charged.
+
+== Trademarks
+
+Tesla(R), Powerwall(R) are trademarks of Tesla, Inc(R).
+
+All trademarks are the property of their respective owners.
+
+Any trademarks used in this project are used in a purely descriptive manner and to state compatability.

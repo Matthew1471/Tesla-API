@@ -1,0 +1,20 @@
+# General Windows metadata.
+Thumbs.db
+
+# Visual Studio metadata.
+/Python/.vs/
+
+# Built releases (from python -m build)
+/Python/dist/
+
+# Files containing our sensitive credentials.
+/Python/examples/configuration/credentials.json
+
+# Python pre-compiled cache.
+/Python/**/__pycache__/
+
+# Python packaging metadata.
+/Python/src/*.egg-info/
+
+# Folder for project research.
+/Research/
