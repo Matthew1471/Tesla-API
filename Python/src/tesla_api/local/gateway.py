@@ -37,7 +37,7 @@ class Gateway:
     """
 
     # This prevents the requests + urllib3 module from creating its own user-agent.
-    HEADERS = {'User-Agent': urllib3.util.SKIP_HEADER, 'Accept':'application/json'}
+    HEADERS = {'User-Agent': urllib3.util.SKIP_HEADER, 'Accept': 'application/json'}
 
     # This sets a 1 minute connect and read timeout.
     TIMEOUT = 60
