@@ -24,7 +24,6 @@ broker (such as RabbitMQ®) for consumption by other example scripts.
 
 import datetime # We output the current date/time for debugging.
 import json     # This script makes heavy use of JSON parsing.
-import os.path  # We check whether a file exists.
 import time     # We use the current epoch seconds for reading times and to delay.
 
 import pika     # Third party library; "pip install pika"

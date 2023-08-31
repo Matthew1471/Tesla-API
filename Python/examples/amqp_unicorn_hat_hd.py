@@ -430,7 +430,11 @@ class ScreenProduction:
 
             # Calculate the colour of the text based off the production wattage
             # (we scale to 91.667% of the HSV colour wheel e.g. up to hue 330).
-            color = tuple(int(n * 255) for n in colorsys.hsv_to_rgb((watts * 0.91667) / (self.maximum_watts_per_panel * number_of_microinverters), 1.0, 1.0))
+            color = tuple(int(n * 255) for n in colorsys.hsv_to_rgb(
+                h=(watts * 0.91667) / (self.maximum_watts_per_panel * number_of_microinverters),
+                s=1.0,
+                v=1.0
+            ))
 
             # Display and scroll the production text on screen (until the end time).
             UnicornHATHelper.draw_scrolling_text(
@@ -809,10 +813,14 @@ def main():
                         # The gateway scales the state of energy to reserve 5%.
                         scaled_state_of_energy = Gateway.scale_soe(state_of_energy)
 
-                        # We scale the hue colours from 0 to the 3rd part (33.33%) of the colour wheel
-                        # [0, 100] / 300 = [0, 0.3333]
+                        # We scale the hue colours from 0 to the 3rd part (33.33%) of the colour
+                        # wheel, i.e. [0, 100] / 300 = [0, 0.3333]
                         # (which corresponds to the red and green part of the color wheel)
-                        color = tuple(int(n * 255) for n in colorsys.hsv_to_rgb(scaled_state_of_energy / 300, 1.0, 1.0))
+                        color = tuple(int(n * 255) for n in colorsys.hsv_to_rgb(
+                            h=scaled_state_of_energy / 300,
+                            s=1.0,
+                            v=1.0
+                        ))
 
                         # Is there no decimal portion?
                         if scaled_state_of_energy.is_integer():
