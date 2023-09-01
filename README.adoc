@@ -37,7 +37,7 @@ This project is focusing primarily on the Tesla(R) Gateway, the gateway for Tesl
 
 WARNING: This project currently predominantly consumes the same local API that the local Gateway web administration portal consumes and Tesla(R) may choose to change it in subsequent updates without warning.
 
-There is no official route for production applications to use the Tesla data other than the https://www.tesla.com/en_gb/support/tesla-app[Tesla(R) App] and the https://www.tesla.com/en_gb/support/energy/powerwall/own/connecting-network[Tesla(R) web brower interface].
+There is no official route for production applications to use the Tesla(R) data other than the https://www.tesla.com/en_gb/support/tesla-app[Tesla(R) App] and the https://www.tesla.com/en_gb/support/energy/powerwall/own/connecting-network[Tesla(R) web brower interface].
 
 == Documentation
 
