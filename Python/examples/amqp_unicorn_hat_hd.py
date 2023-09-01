@@ -810,21 +810,24 @@ def main():
 
                     # Draw the battery power screen (for 5 seconds)
                     if state_of_energy is not None:
-                        # The gateway scales the state of energy to reserve 5%.
-                        scaled_state_of_energy = Gateway.scale_soe(state_of_energy)
+                        # 1. The gateway scales the state of energy to reserve a 5% buffer.
+                        # 2. Round the number to 2 decimal places (so 1.999 becomes 2.00 etc).
+                        # 3. Ensure the result is non-negative; clip to 0 if it's less than 0.
+                        scaled_state_of_energy = max(0, round(Gateway.scale_soe(state_of_energy), 2))
 
-                        # We scale the hue colours from 0 to the 3rd part (33.33%) of the colour
-                        # wheel, i.e. [0, 100] / 300 = [0, 0.3333]
-                        # (which corresponds to the red and green part of the color wheel)
+                        # Scale hue colors from 0 to one-third (33.33%) of the color wheel:
+                        # [0, 100] / 300 = [0, 0.3333]
+                        # This corresponds to the red and green part of the color wheel.
                         color = tuple(int(n * 255) for n in colorsys.hsv_to_rgb(
                             h=scaled_state_of_energy / 300,
                             s=1.0,
                             v=1.0
                         ))
 
-                        # Is there no decimal portion?
+                        # If the rounded value has no meaningful decimal portion (e.g., 25.00),
+                        # truncate it to an integer; otherwise, display to two decimal places.
                         if scaled_state_of_energy.is_integer():
-                            line = f'{scaled_state_of_energy:.0f}%'
+                            line = f'{int(scaled_state_of_energy)}%'
                         else:
                             line = f'{scaled_state_of_energy:.2f}%'
 
