@@ -810,10 +810,12 @@ def main():
 
                     # Draw the battery power screen (for 5 seconds)
                     if state_of_energy is not None:
-                        # 1. The gateway scales the state of energy to reserve a 5% buffer.
-                        # 2. Round the number to 2 decimal places (so 1.999 becomes 2.00 etc).
-                        # 3. Ensure the result is non-negative; clip to 0.0 if it's less than 0.
-                        scaled_state_of_energy = max(0.0, round(Gateway.scale_soe(state_of_energy), 2))
+                        # The gateway scales the state of energy to reserve a 5% buffer.
+                        scaled_state_of_energy = Gateway.scale_soe(state_of_energy)
+
+                        # Round the number to 2 decimal places (so 1.999 becomes 2.00 etc).
+                        # Ensure the result is non-negative; clip to 0.0 if it's less than 0.
+                        scaled_state_of_energy = max(0.0, round(scaled_state_of_energy, 2))
 
                         # Scale hue colors from 0 to one-third (33.33%) of the color wheel:
                         # [0, 100] / 300 = [0, 0.3333]
