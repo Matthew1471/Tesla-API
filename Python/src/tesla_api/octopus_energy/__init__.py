@@ -22,8 +22,8 @@ A module for interacting with the Octopus Energy® API.
 This module provides functionality to interact with the Octopus Energy® API.
 """
 
-# Allow the user to use Octopus by just importing tesla_api.octopus.
-from .api import Octopus
+# Allow the user to use OctopusEnergy by just importing tesla_api.octopus_energy.
+from .api import OctopusEnergy
 
 # Declare what should be offered in the public API when a wildcard import statement is used.
-__all__ = ['Octopus']
+__all__ = ['OctopusEnergy']

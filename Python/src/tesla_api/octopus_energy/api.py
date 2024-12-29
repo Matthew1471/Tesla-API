@@ -34,7 +34,7 @@ import urllib3
 import requests
 
 
-class Octopus:
+class OctopusEnergy:
     """
     A class to talk to Octopus Energy®'s GraphQL™ API.
     This supports maintaining an authenticated session between API calls.
@@ -71,7 +71,7 @@ class Octopus:
         self.session = requests.Session()
 
         # Create a copy of the original header dictionary.
-        self.headers = Octopus.HEADERS.copy()
+        self.headers = OctopusEnergy.HEADERS.copy()
 
     def get_token_from_api_key(self, api_key):
         """
@@ -153,7 +153,7 @@ class Octopus:
         """
 
         # Create a fresh copy of the original header dictionary.
-        self.headers = Octopus.HEADERS.copy()
+        self.headers = OctopusEnergy.HEADERS.copy()
 
         # Build an GraphQL™ document using the obtainKrakenToken mutation.
         query = self.POSSIBLE_ERROR_TYPE_FRAGMENT + textwrap.dedent("""
@@ -227,7 +227,7 @@ class Octopus:
             params={'query':query, 'variables': json.dumps(variables)} if method == 'GET' else None,
             headers=self.headers,
             json={'query':query, 'variables': variables} if method == 'POST' else None,
-            timeout=Octopus.TIMEOUT
+            timeout=OctopusEnergy.TIMEOUT
         )
 
         # Check the response is positive.
