@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
@@ -75,7 +75,7 @@ def main():
     Main function for collecting and transmitting meter readings from Tesla® Gateway to AMQP
     broker.
 
-    This function initializes a session with the Tesla Gateway API, gathers AMQP details
+    This function initializes a session with the Tesla® Gateway API, gathers AMQP details
     from credentials, establishes a connection to the AMQP broker, and repeatedly collects meter
     readings from the API. The collected data is then published to the AMQP broker for
     consumption.
@@ -128,7 +128,7 @@ def main():
         amqp_channel = amqp_connection.channel()
 
         # Declare a topic exchange if one does not already exist.
-        amqp_channel.exchange_declare(exchange='Tesla', exchange_type='topic')
+        amqp_channel.exchange_declare(exchange='Tesla', exchange_type='topic', durable=True)
 
         # Notify the user.
         print(f'{datetime.datetime.now()} - Collecting meter readings. To exit press CTRL+C', flush=True)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
@@ -599,7 +599,7 @@ def main():
 
     # Arguments to control how the program generally behaves.
     general_group = parser.add_argument_group('General')
-    general_group.add_argument('/NumberOfMicroinverters', '-NumberOfMicroinverters', '--NumberOfMicroinverters', dest='number_of_microinverters', type=int, default=14, help='How many microinverters are installed (defaults to 14).')
+    general_group.add_argument('/NumberOfMicroinverters', '-NumberOfMicroinverters', '--NumberOfMicroinverters', dest='number_of_microinverters', type=int, default=21, help='How many microinverters are installed (defaults to 21).')
     general_group.add_argument('/WattsPerPanel', '-WattsPerPanel', '--WattsPerPanel', dest='watts_per_panel', type=int, default=380, help='How many watts can each panel comfortably generate (defaults to 380 which is the limit of an IQ8H).')
     general_group.add_argument('/MaxWattsPerPanel', '-MaxWattsPerPanel', '--MaxWattsPerPanel', dest='maximum_watts_per_panel', type=int, default=384, help='How many watts maximum can each panel generate (defaults to 384 which is the limit of an IQ8H).')
 
