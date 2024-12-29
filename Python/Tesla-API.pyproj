@@ -25,12 +25,15 @@
     <Compile Include="examples\gateway_console.py" />
     <Compile Include="src\tesla_api\local\__init__.py" />
     <Compile Include="src\tesla_api\local\gateway.py" />
+    <Compile Include="src\tesla_api\octopus\api.py" />
+    <Compile Include="src\tesla_api\octopus\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="examples\" />
     <Folder Include="src\" />
     <Folder Include="src\tesla_api\" />
     <Folder Include="src\tesla_api\local\" />
+    <Folder Include="src\tesla_api\octopus\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
