@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
@@ -127,7 +127,7 @@ class Gateway:
         Scale the battery percentage to reserve a 5% buffer.
 
         The Tesla® App always shows the State Of Energy with a 5% reduction.
-        It needs this 5% buffer to keep the Gateway and Powerwall computers powered
+        It needs this 5% buffer to keep the Gateway and Powerwall® computers powered
         when the grid is not available.
 
         Args:

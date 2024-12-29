@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
@@ -17,10 +17,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-A module for interacting with the Tesla Gateway API.
+A module for interacting with the Tesla® Gateway API.
 
-This module provides functionalities to interact with the Tesla Gateway API, allowing
-users to access and manage Tesla Powerwall storage and solar energy system locally
+This module provides functionalities to interact with the Tesla® Gateway API, allowing
+users to access and manage Tesla® Powerwall® storage and solar energy system locally
 without Internet access.
 """
 
