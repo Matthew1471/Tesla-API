@@ -77,7 +77,9 @@ def get_gateway_session(credentials):
     # Do we have a way to obtain an access token?
     if not credentials.get('gateway_password'):
         # Let the user know why the program is exiting.
-        raise ValueError('Unable to login to the gateway (missing credentials in credentials.json).')
+        raise ValueError(
+            'Unable to login to the gateway (missing credentials in credentials.json).'
+        )
 
     # Did the user override the library default hostname to the Gateway?
     host = credentials.get('gateway_host')
