@@ -34,7 +34,6 @@
     <Folder Include="src\" />
     <Folder Include="src\tesla_api\" />
     <Folder Include="src\tesla_api\local\" />
-    <Folder Include="src\tesla_api\octopus\" />
     <Folder Include="src\tesla_api\octopus_energy\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
