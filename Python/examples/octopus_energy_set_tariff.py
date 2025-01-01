@@ -127,11 +127,11 @@ def get_api_session(configuration):
             token_configuration
             and token_configuration.get('refresh')
             and token_configuration.get('refresh_expiry')
-            and token_configuration.get('refresh_expiry') < int(time.time())
+            and time.time() < token_configuration.get('refresh_expiry')
         ):
             # Get a JWT from our Octopus refresh token.
             response = octopus_energy.refresh_token(
-                octopus_energy_configuration['refresh_token']
+                token_configuration['refresh']
             ).get('data').get('obtainKrakenToken')
 
             # Update the configuration dictionary, file and reference.
