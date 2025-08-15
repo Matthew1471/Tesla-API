@@ -307,8 +307,20 @@ class ScreenWeather:
             timeout=5
         ).json()
 
+        # Sometimes the current_weather is not returned.
+        if 'current_weather' not in response:
+            return -1, -1, -1, -1
+
+        weather = response['current_weather']
+        daily = response['daily']
+
         # Return some specific components from the weather data.
-        return response['current_weather']['weathercode'], response['current_weather']['windspeed'], response['daily']['sunrise'][0], response['daily']['sunset'][0]
+        return (
+            weather['weathercode'],
+            weather['windspeed'],
+            daily['sunrise'][0],
+            daily['sunset'][0]
+        )
 
     @staticmethod
     def get_weather_filename(weather_code, wind_speed, sunrise, sunset):
