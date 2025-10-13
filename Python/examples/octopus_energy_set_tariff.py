@@ -28,7 +28,10 @@ The functions in this module allow you to:
 - Apply the tariff to the Tesla® Powerwall®.
 """
 
- # This script makes heavy use of JSON parsing.
+# We manipulate dates and times.
+import datetime
+
+# This script makes heavy use of JSON parsing.
 import json
 
 # Text in variables is dedented while still maintaing source code indentation.
@@ -37,11 +40,16 @@ import textwrap
 # We compare against the epoch time.
 import time
 
+# All the shared Tesla® API functions are in this package.
+from tesla_api.cloud.owner_api import OwnerAPI
+from tesla_api.cloud.tariff_content import TariffContent
+from tesla_api.cloud.tariff import Tariff
+
 # All the shared Octopus Energy® functions are in this package.
 from tesla_api.octopus_energy import OctopusEnergy
 
 
-def update_token_configuration(configuration, token_response):
+def update_octopus_energy_token_configuration(configuration, token_response):
     """
     Update the Octopus Energy® token configuration and save it to a JSON file.
 
@@ -78,7 +86,7 @@ def update_token_configuration(configuration, token_response):
     # Return the reference to our new token configuration.
     return token_configuration
 
-def get_api_session(configuration):
+def get_octopus_energy_api_session(configuration):
     """
     Establishes a session with the Octopus Energy® API.
 
@@ -130,22 +138,32 @@ def get_api_session(configuration):
             and time.time() < token_configuration.get('refresh_expiry')
         ):
             # Get a JWT from our Octopus refresh token.
-            response = octopus_energy.refresh_token(
-                token_configuration['refresh']
-            ).get('data').get('obtainKrakenToken')
+            response = (
+                octopus_energy.refresh_token(token_configuration['refresh'])
+                .get('data')
+                .get('obtainKrakenToken')
+            )
 
             # Update the configuration dictionary, file and reference.
-            token_configuration = update_token_configuration(configuration, response)
+            token_configuration = update_octopus_energy_token_configuration(
+                configuration, response
+            )
 
     # Do we still not have a Token?
     if token_configuration is None or not token_configuration.get('current'):
         # Get a JWT from our Octopus API key.
-        response = octopus_energy.get_token_from_api_key(
-            octopus_energy_configuration['api_key']
-        ).get('data').get('obtainKrakenToken')
+        response = (
+            octopus_energy.get_token_from_api_key(
+                octopus_energy_configuration['api_key']
+            )
+            .get('data')
+            .get('obtainKrakenToken')
+        )
 
         # Update the configuration dictionary, file and reference.
-        token_configuration = update_token_configuration(configuration, response)
+        token_configuration = update_octopus_energy_token_configuration(
+            configuration, response
+        )
 
     # Apply the token to our Octopus API instance.
     octopus_energy.set_token(token_configuration.get('current'))
@@ -153,7 +171,7 @@ def get_api_session(configuration):
     # Return the initialised octopus object.
     return octopus_energy
 
-def query_graphql(octopus_energy, account_number):
+def query_octopus_energy_graphql(octopus_energy, account_number):
     """
     Queries the Octopus Energy® API for the tariff and planned dispatch data.
 
@@ -165,68 +183,79 @@ def query_graphql(octopus_energy, account_number):
     """
 
     # Build the GetTariffAndPlannedDispatches query.
-    query = textwrap.dedent("""
-    query GetTariffAndPlannedDispatches($accountNumber: String!) {
-      getTariff: account(accountNumber: $accountNumber) {
-        properties {
-          electricityMeterPoints {
-            meters(includeInactive: false) {
-              meterPoint {
-                agreements(includeInactive: false, excludeFuture: true) {
-                  tariff {
-                    __typename
-                    ... on StandardTariff {
-                      isExport
-                      unitRate
-                    }
-                    ... on HalfHourlyTariff {
-                      isExport
-                      unitRates {
-                        value
-                        validFrom
-                        validTo
+    query = textwrap.dedent(
+        """
+        query GetTariffAndPlannedDispatches($accountNumber: String!) {
+          getTariff: account(accountNumber: $accountNumber) {
+            properties {
+              electricityMeterPoints {
+                meters(includeInactive: false) {
+                  meterPoint {
+                    agreements(includeInactive: false, excludeFuture: true) {
+                      tariff {
+                        __typename
+                        ... on StandardTariff {
+                          displayName
+                          isExport
+                          standingCharge
+                          tariffCode
+                          unitRate
+                        }
+                        ... on HalfHourlyTariff {
+                          displayName
+                          isExport
+                          standingCharge
+                          tariffCode
+                          unitRates {
+                            value
+                            validFrom
+                            validTo
+                          }
+                        }
+                        ... on ThreeRateTariff {
+                          displayName
+                          isExport
+                          standingCharge
+                          tariffCode
+                          dayRate
+                          nightRate
+                          offPeakRate
+                        }
+                        ... on DayNightTariff {
+                          displayName
+                          isExport
+                          standingCharge
+                          tariffCode
+                          dayRate
+                          nightRate
+                        }
                       }
-                    }
-                    ... on ThreeRateTariff {
-                      isExport
-                      dayRate
-                      nightRate
-                      offPeakRate
-                    }
-                    ... on DayNightTariff {
-                      isExport
-                      dayRate
-                      nightRate
                     }
                   }
                 }
               }
             }
           }
+          getPlannedDispatches: plannedDispatches(accountNumber: $accountNumber) {
+            start
+            end
+            delta
+            meta {
+              source
+            }
+          }
         }
-      }
-      getPlannedDispatches: plannedDispatches(accountNumber: $accountNumber) {
-        start
-        end
-        delta
-        meta {
-          source
-        }
-      }
-    }
-    """).strip()
+        """
+    ).strip()
     variables = {'accountNumber': account_number}
 
     # Request the tariff and planned_dispatches.
     response = octopus_energy.api_call(query, variables)
 
-    # Clean response (there's an excessive amount of nesting otherwise).
-    response = clean_response(response.get('data'))
+    # Clean and return the response (there's an excessive amount of nesting otherwise).
+    return clean_octopus_energy_response(response.get('data'))
 
-    # Return the data.
-    return response
-
-def clean_response(response):
+def clean_octopus_energy_response(response):
     """
     Reformats the dictionary data into something more easily iterable.
 
@@ -243,7 +272,7 @@ def clean_response(response):
     """
     properties = response.get('getTariff').get('properties')
 
-    # For now we do not support multiple properties within an Octopus Energy account.
+    # For now we do not support multiple properties within an Octopus Energy® account.
     if len(properties) != 1:
         raise ValueError(
             f'{len(properties)} properties are currently under this Octopus Energy® account; '
@@ -251,7 +280,7 @@ def clean_response(response):
         )
 
     # Build a new dictionary that is easier to parse the tariff information.
-    result = { 'export': {}, 'import': {} }
+    result = {'export': {}, 'import': {}}
     electricity_meter_points = properties[0].get('electricityMeterPoints')
     for electricity_meter_point in electricity_meter_points:
         for meter in electricity_meter_point.get('meters'):
@@ -271,6 +300,354 @@ def clean_response(response):
 
     # Return the new dictionary.
     return result
+
+def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
+    """
+    Update the Tesla® energy site ID configuration and save it to a JSON file.
+
+    This function adds the provided energy_site_id under the 'tesla' key,
+    updates the JSON file with the modified configuration.
+
+    Args:
+        configuration (dict): The main configuration dictionary to be updated.
+        energy_site_id (dict): The selected energy site id.
+
+    Returns:
+        None
+
+    Raises:
+        IOError: If there is an error while writing to the JSON file.
+    """
+
+    # Add or update the energy_site_id in the configuration.
+    configuration['tesla']['energy_site_id'] = energy_site_id
+
+    # Update the file to include the modified energy_site_id.
+    with open('configuration/set_tariff.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
+
+def get_tesla_energy_site_ids(owner_api):
+    # Declare an empty list of energy_site_id.
+    result = []
+
+    # Query the list of products under the account.
+    response = owner_api.api_call('/api/1/products')
+
+    # Can this be parsed.
+    if 'response' not in response:
+        raise ValueError('Unable to process Tesla products response.')
+
+    # Take each product.
+    for product in response['response']:
+        # Is this product an energy product.
+        if 'energy_site_id' in product:
+            # Add to the list.
+            result.append(product['energy_site_id'])
+
+    # Return the resulting list of energy site IDs.
+    return result
+
+def get_tesla_tou_periods(octopus_tariff, reduce_battery_wear=True):
+    # Constants.
+    SECONDS_PER_HALF_HOUR = 1800
+    HALF_HOUR_PERIODS_PER_DAY = 48
+
+    # If the buy tariff is a StandardTariff then the buy rates are trivial to calculate.
+    if octopus_tariff['import']['__typename'] == 'StandardTariff':
+        # Convert to pounds.
+        fixed_buy_rate = octopus_tariff['import']['unitRate'] / 100
+
+        # Each of the 30 minute slots in 24 hours set to the fixed rate.
+        buy_rates = [fixed_buy_rate] * HALF_HOUR_PERIODS_PER_DAY
+
+        # The single unique buy rate in an array.
+        sorted_buy_rates = [fixed_buy_rate]
+        buy_rates_count = 1
+    # If the buy tariff is a half hourly tariff this becomes harder.
+    elif octopus_tariff['import']['__typename'] == 'HalfHourlyTariff':
+        # Each of the 30 minute slots in 24 hours.
+        buy_rates = [None] * HALF_HOUR_PERIODS_PER_DAY
+
+        # Start of the day (midnight).
+        start_of_day = datetime.datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Populate the buy_rates array.
+        for unit_rate in octopus_tariff['import']['unitRates']:
+            start = datetime.datetime.fromisoformat(unit_rate['validFrom']).astimezone()
+            end = datetime.datetime.fromisoformat(unit_rate['validTo']).astimezone()
+
+            # Convert the unitRates' value to pounds.
+            buy_rate = unit_rate['value'] / 100
+
+            # Calculate the half-hour slots for start and end.
+            start_index = int((start - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+            end_index = int((end - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+
+            # Populate buy_rates, wrapping around if needed (and stopping once 24 hours are filled).
+            index = start_index
+            while index != end_index and buy_rates[index] is None:
+                buy_rates[index] = buy_rate
+                index = (index + 1) % HALF_HOUR_PERIODS_PER_DAY
+
+        # Sort unique rates by value (ascending).
+        sorted_buy_rates = sorted(set(buy_rates))
+        buy_rates_count = len(sorted_buy_rates)
+    else:
+        raise ValueError(f'{octopus_tariff["import"]["__typename"]} is not a currently implemented import ElectricityTariffType.')
+
+    # Define categories dynamically based on the number of unique rate values.
+    categories_map = {
+        2: ['OFF_PEAK', 'ON_PEAK'],
+        3: ['OFF_PEAK', 'PARTIAL_PEAK', 'ON_PEAK'],
+        4: ['SUPER_OFF_PEAK', 'OFF_PEAK', 'PARTIAL_PEAK', 'ON_PEAK']
+    }
+
+    # True variable half hourly tariffs will likely have more periods than 4.
+    if buy_rates_count > 4:
+        # Make up new categories.
+        buy_categories = [f'RATE_{i + 1}' for i in range(buy_rates_count)]
+    else:
+        # Return dictionary with rates to categories mapping.
+        buy_categories = categories_map[buy_rates_count]
+
+    buy_categories_to_rates = dict(zip(buy_categories, sorted_buy_rates))
+    buy_rates_to_categories = dict(zip(sorted_buy_rates, buy_categories))
+
+    # If the sell tariff is a StandardTariff then the rates are trivial to calculate.
+    if octopus_tariff['export']['__typename'] == 'StandardTariff':
+        # Convert to pounds.
+        fixed_sell_rate = octopus_tariff['export']['unitRate'] / 100
+
+        # Precompute the first key and cheapest buy rate for clarity and efficiency.
+        first_key = buy_categories[0]
+        cheapest_buy_rate = sorted_buy_rates[0]
+
+        # Reproduce every used buy category but with a fixed sell rate.
+        sell_categories_to_rates = {
+            # Use a flag to handle the non-cheapest buy rates explicitly when overriding for reduce_battery_wear.
+            key: (cheapest_buy_rate if reduce_battery_wear and key != first_key else fixed_sell_rate)
+            for key in buy_categories
+        }
+        sorted_sell_rates = set([cheapest_buy_rate, fixed_sell_rate]) if reduce_battery_wear else set([fixed_sell_rate])
+        sell_rates_count = len(buy_categories)
+    elif octopus_tariff['export']['__typename'] == 'HalfHourlyTariff':
+
+        # Each of the 30 minute slots in 24 hours.
+        sell_rates = [None] * HALF_HOUR_PERIODS_PER_DAY
+
+        # Start of the day (midnight).
+        start_of_day = datetime.datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Populate the sell_rates array.
+        for unit_rate in octopus_tariff['export']['unitRates']:
+            start = datetime.datetime.fromisoformat(unit_rate['validFrom']).astimezone()
+            end = datetime.datetime.fromisoformat(unit_rate['validTo']).astimezone()
+
+            # Convert the unitRates' value to pounds.
+            sell_rate = unit_rate['value'] / 100
+
+            # Calculate the half-hour slots for start and end.
+            start_index = int((start - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+            end_index = int((end - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+
+            # Populate sell_rates, wrapping around if needed (and stopping once 24 hours are filled).
+            index = start_index
+            while index != end_index and sell_rates[index] is None:
+                sell_rates[index] = sell_rate
+                index = (index + 1) % HALF_HOUR_PERIODS_PER_DAY
+
+        # Sort unique rates by value (ascending).
+        sorted_sell_rates = sorted(set(sell_rates))
+        sell_rates_count = len(sorted_sell_rates)
+
+        # If there are more sell rates than buy then sell needs to copy buy.
+        # If there are more buy rates than sell then buy needs to copy sell.
+
+    else:
+        raise ValueError(f'{octopus_tariff["export"]["__typename"]} is not a currently implemented export ElectricityTariffType.')
+
+    # True variable half hourly tariffs will likely have more periods than 4.
+    if sell_rates_count > 4:
+        # Make up new categories.
+        sell_categories = [f'RATE_{i + 1}' for i in range(sell_rates_count)]
+    else:
+        # Return dictionary with rates to categories mapping.
+        sell_categories = categories_map[sell_rates_count]
+
+    sell_categories_to_rates = dict(zip(sell_categories, sorted_sell_rates))
+    sell_rates_to_categories = dict(zip(sorted_sell_rates, sell_categories))
+
+    # Merge the planned_dispatches into the buy_rates.
+    for planned_dispatch in octopus_tariff['plannedDispatches']:
+        start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
+        end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
+
+        # The cheapest buy rate.
+        buy_rate = sorted_buy_rates[0]
+
+        # Calculate the half-hour slots for start and end.
+        start_index = int((start - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+        end_index = int((end - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
+
+        # Populate buy_rates, wrapping around if needed.
+        index = start_index
+        while index != end_index:
+            buy_rates[index] = buy_rate
+            index = (index + 1) % HALF_HOUR_PERIODS_PER_DAY
+
+    # Start building the Time-Of-Use periods.
+    tou_periods = {category: {"periods": []} for category in categories_map[len(sorted_buy_rates)]}
+
+    # Iterate through the rates converting back to time-periods again.
+    block_index = 0
+    while block_index < HALF_HOUR_PERIODS_PER_DAY:
+        current_value = buy_rates[block_index]
+        current_category = buy_rates_to_categories[current_value]
+
+        # Find the end of the current block, wrapping around if needed.
+        end_index = block_index
+        while buy_rates[end_index % HALF_HOUR_PERIODS_PER_DAY] == current_value:
+            end_index += 1
+
+        # The first block may not always be the true fromHour and fromMinute but sometimes it is.
+        if block_index != 0 or buy_rates[HALF_HOUR_PERIODS_PER_DAY-1] != current_value:
+            from_hour, from_minute = divmod(block_index * 30, 60)
+            to_hour, to_minute = divmod((end_index % HALF_HOUR_PERIODS_PER_DAY) * 30, 60)
+
+            tou_periods[current_category]["periods"].append({
+                "fromDayOfWeek": 0,
+                "toDayOfWeek": 6,
+                "fromHour": from_hour,
+                "fromMinute": from_minute,
+                "toHour": to_hour,
+                "toMinute": to_minute
+            })
+
+        # Move to the next block.
+        block_index = end_index
+
+    # Return the tou_periods, buy_categories_to_rates and sell_categories_to_rates.
+    return tou_periods, buy_categories_to_rates, sell_categories_to_rates
+
+def get_tesla_tou_settings(octopus_tariff):
+    # Generate a new tariff content object to send.
+    tariff_content = TariffContent()
+
+    # Calculate the tou_periods and buy/sell rates.
+    # We can optionally set the ON_PEAK rate to be the cheapest buy rate to prevent battery wear.
+    tou_periods, buy_categories_to_rates, sell_categories_to_rates = get_tesla_tou_periods(octopus_tariff)
+
+    # This is the same for the buy and sell tariffs.
+    seasons = {
+        "Summer": {
+            "fromDay": 1,
+            "toDay": 31,
+            "fromMonth": 1,
+            "toMonth": 12,
+            "tou_periods": tou_periods
+        }
+    }
+
+    # Buy Tariff.
+    buy_tariff = Tariff()
+    buy_tariff.set_code(octopus_tariff['import']['tariffCode'])
+    buy_tariff.set_name(octopus_tariff['import']['displayName'])
+    buy_tariff.set_utility('Octopus Energy')
+    buy_tariff.set_currency('GBP')
+    buy_tariff.set_daily_charges([
+        {
+            "name": "Standing Charge",
+            "amount": octopus_tariff['import']['standingCharge'] / 100
+        }
+    ])
+
+    # This breaks "Energy Value" impact graph if not set.
+    buy_tariff.set_demand_charges({"ALL": { } })
+
+    # Changing the season from "Summer"/"Winter" breaks "Time-of-Use" impact graph.
+    buy_tariff.set_energy_charges(
+        {
+            "Summer": {
+                "rates": buy_categories_to_rates
+            }
+        }
+    )
+    buy_tariff.set_seasons(seasons)
+
+    # Add the buy Tariff to the tariff_content.
+    tariff_content.set_buy_tariff(buy_tariff)
+
+    # Sell Tariff.
+    sell_tariff = Tariff()
+    sell_tariff.set_code(octopus_tariff['export']['tariffCode'])
+    sell_tariff.set_name(octopus_tariff['export']['displayName'])
+    sell_tariff.set_utility('Octopus Energy')
+    sell_tariff.set_currency('GBP')
+
+    # This breaks the "Energy Value" impact graph if not set.
+    sell_tariff.set_demand_charges({"ALL": { } })
+
+    # Changing the season from "Summer"/"Winter" breaks "Time-of-Use" impact graph.
+    sell_tariff.set_energy_charges(
+        {
+            "Summer": {
+                "rates": sell_categories_to_rates
+            }
+        }
+    )
+    sell_tariff.set_seasons(seasons)
+
+    # Add the export Tariff to the tariff_content.
+    tariff_content.set_sell_tariff(sell_tariff)
+
+    # Set the tariff content version.
+    tariff_content.set_version(1)
+
+    # Return the time of use settings JSON.
+    return {
+        'tou_settings': {
+            'tariff_content_v2': tariff_content.get_content()
+        }
+    }
+
+def update_tesla_tariff(configuration, time_of_use_settings):
+    # Get a reference to the tesla section of the configuration.
+    tesla_configuration = configuration.get('tesla')
+
+    # Call Tesla® owner API.
+    owner_api = OwnerAPI()
+    owner_api.set_token(tesla_configuration['token'])
+
+    # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
+    if 'energy_site_id' in tesla_configuration:
+        energy_site_id = tesla_configuration.get('energy_site_id')
+    else:
+        # A Tesla® account can contain multiple energy products.
+        energy_site_ids = get_tesla_energy_site_ids(owner_api)
+
+        # Print the energy_site_id for the user.
+        print('Found Energy Site ID(s): ', end='')
+        print(*energy_site_ids, sep=', ')
+
+        # It is undesirable to change TOU settings on an arbitrary site.
+        if len(energy_site_ids) != 1:
+            raise ValueError(
+                f'You have {len(energy_site_ids)} energy products under this account. '
+                'You must manually set one to change in the configuration.'
+            )
+
+        # Pick the only energy_site_id.
+        energy_site_id = energy_site_ids[0]
+
+        # Store the energy_site_id for future use.
+        update_tesla_energy_site_id_configuration(configuration, energy_site_id)
+
+    # Set the time of use settings and return the response.
+    return owner_api.api_call(
+        path = f'/api/1/energy_sites/{energy_site_id}/time_of_use_settings',
+        method = 'POST',
+        json = time_of_use_settings
+    )
 
 def main():
     """
@@ -295,12 +672,26 @@ def main():
     octopus_energy_configuration = configuration.get('octopus_energy')
 
     # Get an authenticated instance of the API.
-    octopus_energy = get_api_session(configuration)
+    octopus_energy = get_octopus_energy_api_session(configuration)
 
     # Get the tariff and planned_dispatches.
-    response = query_graphql(octopus_energy, octopus_energy_configuration.get('account_number'))
+    octopus_tariff = query_octopus_energy_graphql(
+        octopus_energy, octopus_energy_configuration.get('account_number')
+    )
 
-    # Print out the new dictionary.
+    # Print out the Octopus Tariff.
+    print('Octopus Tariff:\n\n' + json.dumps(octopus_tariff, indent=4) + '\n')
+
+    # Get the Tesla time of use settings.
+    time_of_use_settings = get_tesla_tou_settings(octopus_tariff)
+
+    # Print out the Tesla time of use settings.
+    print('Tesla:\n\n' + json.dumps(time_of_use_settings, indent=4))
+
+    # Update Tesla Tariff.
+    response = update_tesla_tariff(configuration, time_of_use_settings)
+
+    # Print out the server's response.
     print(json.dumps(response, indent=4))
 
 # Launch the main method if invoked directly.
