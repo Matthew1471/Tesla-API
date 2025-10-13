@@ -31,7 +31,6 @@
     <Compile Include="src\tesla_api\cloud\tariff_content.py" />
     <Compile Include="src\tesla_api\local\__init__.py" />
     <Compile Include="src\tesla_api\local\gateway.py" />
-    <Compile Include="src\tesla_api\octopus_energy\api.py" />
     <Compile Include="src\tesla_api\octopus_energy\__init__.py" />
     <Compile Include="src\tesla_api\octopus_energy\api.py" />
   </ItemGroup>
