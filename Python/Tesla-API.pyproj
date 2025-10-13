@@ -20,6 +20,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="examples\amqp_state_of_energy.pyw" />
     <Compile Include="examples\amqp_unicorn_hat_hd.py" />
     <Compile Include="examples\gateway_amqp_meters.py" />
     <Compile Include="examples\gateway_console.py" />
