@@ -21,9 +21,6 @@ Tesla-API Tariff Content Module
 This module provides classes and methods for representing tariff content in the Tesla® API.
 """
 
-# The tariff specifics are actually in this class.
-from .tariff import Tariff
-
 # This script makes heavy use of JSON parsing.
 import json
 

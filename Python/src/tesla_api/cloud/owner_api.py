@@ -22,10 +22,6 @@ This module provides classes and methods for interacting with the Tesla® owner 
 It supports maintaining an authenticated session and making requests.
 """
 
-# We can check JWT claims/expiration first before making a request
-# ("pip install pyjwt" if not already installed).
-import jwt
-
 # Third party library for making HTTP(S) requests;
 # "pip install requests" if getting import errors.
 import requests
