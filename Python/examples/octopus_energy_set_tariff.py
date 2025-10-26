@@ -105,41 +105,29 @@ def get_octopus_energy_api_session(configuration):
     """
 
     # Get a reference just to the octopus_energy_configuration.
-    octopus_energy_configuration = configuration.get('octopus_energy')
+    octopus_energy_configuration = configuration.get('octopus_energy', {})
 
-    # Do we have a way to obtain an access token?
-    if not octopus_energy_configuration.get('api_key'):
-        # Let the user know why the program is exiting.
-        raise ValueError(
-            'Unable to login to Octopus Energy® API (missing api_key in credentials.json).'
-        )
+    # Attempt to get a reference to just the token_configuration.
+    token_configuration = octopus_energy_configuration.get('token', {})
 
     # Instantiate the Octopus API wrapper.
     octopus_energy = OctopusEnergy()
 
-    # Attempt to get a reference to just the token_configuration.
-    token_configuration = octopus_energy_configuration.get('token')
+    # Attempt to obtain current token.
+    current_token = token_configuration.get('current')
 
     # Do we have a valid JSON Web Token (JWT) to be able to use the service?
-    if not (
-        token_configuration
-        and token_configuration.get('current')
-        and OctopusEnergy.check_token_valid(token_configuration['current'])
-    ):
+    if not (current_token and OctopusEnergy.check_token_valid(current_token)):
         # It is not valid so clear it.
-        if token_configuration:
-            token_configuration['current'] = None
+        token_configuration['current'] = None
 
-        # Maybe we can still use an opaque refresh token?
-        if (
-            token_configuration
-            and token_configuration.get('refresh')
-            and token_configuration.get('refresh_expiry')
-            and time.time() < token_configuration.get('refresh_expiry')
-        ):
+        # Try refresh token if available and not expired
+        refresh_token = token_configuration.get('refresh')
+        refresh_expiry = token_configuration.get('refresh_expiry')
+        if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
             # Get a JWT from our Octopus refresh token.
             response = (
-                octopus_energy.refresh_token(token_configuration['refresh'])
+                octopus_energy.refresh_token(refresh_token)
                 .get('data')
                 .get('obtainKrakenToken')
             )
@@ -150,12 +138,18 @@ def get_octopus_energy_api_session(configuration):
             )
 
     # Do we still not have a Token?
-    if token_configuration is None or not token_configuration.get('current'):
+    if not token_configuration.get('current'):
+        api_key = octopus_energy_configuration.get('api_key')
+        # Do we have a way to obtain an access token?
+        if not api_key:
+            # Let the user know why the program is exiting.
+            raise ValueError(
+                'Unable to login to Octopus Energy® API (missing api_key in credentials.json).'
+            )
+
         # Get a JWT from our Octopus API key.
         response = (
-            octopus_energy.get_token_from_api_key(
-                octopus_energy_configuration['api_key']
-            )
+            octopus_energy.get_token_from_api_key(api_key)
             .get('data')
             .get('obtainKrakenToken')
         )
@@ -616,7 +610,7 @@ def update_tesla_tariff(configuration, time_of_use_settings):
 
     # Call Tesla® owner API.
     owner_api = OwnerAPI()
-    owner_api.set_token(tesla_configuration['token'])
+    owner_api.set_token(tesla_configuration.get('token', {})['current'])
 
     # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
     if 'energy_site_id' in tesla_configuration:
