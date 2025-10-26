@@ -17,13 +17,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This example provides functionality to interact with the Octopus Energy® API for monitoring
-Intelligent Octopus Go dynamic planned dispatch times and then applying them to the Tesla®
-Powerwall®.
+This example provides functionality to interact with the Octopus Energy® API for applying
+tariff information to the Tesla® Powerwall®.
 
 The functions in this module allow you to:
-- Establish an Octopus Energy® API session.
-- Fetch dynamic planned dispatch times.
+- Establish an Octopus Energy® API session and fetch tariff information.
 - Generate a Tesla® Powerwall® tariff.
 - Apply the tariff to the Tesla® Powerwall®.
 """
@@ -168,7 +166,7 @@ def get_octopus_energy_api_session(configuration):
 
 def query_octopus_energy_graphql(octopus_energy, account_number):
     """
-    Queries the Octopus Energy® API for the tariff and planned dispatch data.
+    Queries the Octopus Energy® API for the tariff.
 
     Args:
         account_number (str): The Octopus Energy® account number to query.
@@ -177,10 +175,10 @@ def query_octopus_energy_graphql(octopus_energy, account_number):
         dict: JSON response containing the requested data.
     """
 
-    # Build the GetTariffAndPlannedDispatches query.
+    # Build the GetTariff query.
     query = textwrap.dedent(
         """
-        query GetTariffAndPlannedDispatches($accountNumber: String!) {
+        query GetTariff($accountNumber: String!) {
           getTariff: account(accountNumber: $accountNumber) {
             properties {
               electricityMeterPoints {
@@ -231,20 +229,12 @@ def query_octopus_energy_graphql(octopus_energy, account_number):
               }
             }
           }
-          getPlannedDispatches: plannedDispatches(accountNumber: $accountNumber) {
-            start
-            end
-            delta
-            meta {
-              source
-            }
-          }
         }
         """
     ).strip()
     variables = {'accountNumber': account_number}
 
-    # Request the tariff and planned_dispatches.
+    # Request the tariff.
     response = octopus_energy.api_call(query, variables)
 
     # Clean and return the response (there's an excessive amount of nesting otherwise).
@@ -289,9 +279,6 @@ def clean_octopus_energy_response(response):
 
                 # Remove the isExport key once it has been handled.
                 del tariff['isExport']
-
-    # Add the plannedDispatches information to our new dictionary.
-    result['plannedDispatches'] = response.get('getPlannedDispatches')
 
     # Return the new dictionary.
     return result
@@ -592,24 +579,6 @@ def get_tesla_tou_periods(octopus_tariff, reduce_battery_wear=True):
     sell_categories_to_rates = dict(zip(sell_categories, sorted_sell_rates))
     sell_rates_to_categories = dict(zip(sorted_sell_rates, sell_categories))
 
-    # Merge the planned_dispatches into the buy_rates.
-    for planned_dispatch in octopus_tariff['plannedDispatches']:
-        start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
-        end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
-
-        # The cheapest buy rate.
-        buy_rate = sorted_buy_rates[0]
-
-        # Calculate the half-hour slots for start and end.
-        start_index = int((start - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
-        end_index = int((end - start_of_day).total_seconds() // SECONDS_PER_HALF_HOUR) % HALF_HOUR_PERIODS_PER_DAY
-
-        # Populate buy_rates, wrapping around if needed.
-        index = start_index
-        while index != end_index:
-            buy_rates[index] = buy_rate
-            index = (index + 1) % HALF_HOUR_PERIODS_PER_DAY
-
     # Start building the Time-Of-Use periods.
     tou_periods = {category: {"periods": []} for category in categories_map[len(sorted_buy_rates)]}
 
@@ -766,11 +735,10 @@ def update_tesla_tariff(owner_api, energy_site_id, time_of_use_settings):
 
 def main():
     """
-    Main function for collecting and displaying Octopus Energy® Intelligent dynamic times.
+    Main function for collecting and displaying Octopus Energy® tariff
 
     This function loads credentials from a JSON file, initializes a session with Octopus Energy®
-    API, retrieves the device planned dispatches (dynamic times), and displays the information on
-    the console.
+    API, retrieves the tariff and displays it on the console and then updates the Powerwall.
 
     Args:
         None
@@ -789,7 +757,7 @@ def main():
     # Get an authenticated instance of the API.
     octopus_energy = get_octopus_energy_api_session(configuration)
 
-    # Get the tariff and planned_dispatches.
+    # Get the tariff.
     octopus_tariff = query_octopus_energy_graphql(
         octopus_energy, octopus_energy_configuration.get('account_number')
     )
