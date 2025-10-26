@@ -770,7 +770,7 @@ def main():
                 # AMQP get a meter response.
                 while True:
                     # Get a message.
-                    method, properties, body = amqp_channel.basic_get(
+                    method, _, body = amqp_channel.basic_get(
                         queue=amqp_result.method.queue,
                         auto_ack=True
                     )
