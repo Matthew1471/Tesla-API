@@ -27,6 +27,7 @@
     <Compile Include="examples\jwks_convert.py" />
     <Compile Include="examples\octopus_energy_set_tariff.py" />
     <Compile Include="src\tesla_api\cloud\__init__.py" />
+    <Compile Include="src\tesla_api\cloud\authentication.py" />
     <Compile Include="src\tesla_api\cloud\owner_api.py" />
     <Compile Include="src\tesla_api\cloud\tariff.py" />
     <Compile Include="src\tesla_api\cloud\tariff_content.py" />

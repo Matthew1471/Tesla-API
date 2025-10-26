@@ -22,3 +22,6 @@ A module for interacting with the Tesla® Cloud API.
 This module provides functionalities to interact with the Tesla® Cloud API, allowing
 users to acquire tokens to access and manage Tesla® energy system data including tariffs.
 """
+
+# Declare what should be offered in the Public API.
+__all__ = ['Authentication']
