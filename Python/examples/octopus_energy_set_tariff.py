@@ -80,7 +80,7 @@ def update_octopus_energy_token_configuration(configuration, token_response):
     configuration['octopus_energy']['token'] = token_configuration
 
     # Update the file to include the modified token.
-    with open('configuration/set_tariff.json', mode='w', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
     # Return the reference to our new token configuration.
@@ -111,7 +111,7 @@ def get_octopus_energy_api_session(configuration):
     if not octopus_energy_configuration.get('api_key'):
         # Let the user know why the program is exiting.
         raise ValueError(
-            'Unable to login to Octopus Energy® API (missing api_key in set_tariff.json).'
+            'Unable to login to Octopus Energy® API (missing api_key in credentials.json).'
         )
 
     # Instantiate the Octopus API wrapper.
@@ -323,7 +323,7 @@ def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
     configuration['tesla']['energy_site_id'] = energy_site_id
 
     # Update the file to include the modified energy_site_id.
-    with open('configuration/set_tariff.json', mode='w', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
 def get_tesla_energy_site_ids(owner_api):
@@ -665,7 +665,7 @@ def main():
     """
 
     # Load configuration.
-    with open('configuration/set_tariff.json', mode='r+', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
 
     # Get a reference to the octopus_energy section of the configuration.

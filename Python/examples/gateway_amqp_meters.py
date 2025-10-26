@@ -52,18 +52,18 @@ def get_gateway_session(credentials):
     """
 
     # Do we have a way to obtain an access token?
-    if not credentials.get('gateway_password'):
+    if not credentials.get('password'):
         # It is either not present or not valid.
         raise ValueError('Unable to login to the gateway (missing credentials in credentials.json).')
 
     # Did the user override the library default hostname to the Gateway?
-    host = credentials.get('gateway_host')
+    host = credentials.get('host')
 
     # Instantiate the Gateway API wrapper (with the default library hostname if None provided).
     gateway = Gateway(host)
 
     # Are we not able to login to the gateway?
-    if not gateway.login(credentials['gateway_password']):
+    if not gateway.login(credentials['password']):
         # Let the user know why the program is exiting.
         raise ValueError('Unable to login to the gateway (bad or missing credentials in credentials.json).')
 
@@ -97,12 +97,13 @@ def main():
         credentials = json.load(json_file)
 
     # Get an instance of the Gateway.
-    gateway = get_gateway_session(credentials)
+    gateway = get_gateway_session(credentials.get('gateway', {}))
 
     # Gather the AMQP details from the credentials file.
-    amqp_host = credentials.get('amqp_host', 'localhost')
-    amqp_username = credentials.get('amqp_username', 'guest')
-    amqp_password = credentials.get('amqp_password', 'guest')
+    amqp = credentials.get('amqp', {})
+    amqp_host = amqp.get('host', 'localhost')
+    amqp_username = amqp.get('username', 'guest')
+    amqp_password = amqp.get('password', 'guest')
 
     # Gather the AMQP credentials into a PlainCredentials object.
     amqp_credentials = pika.PlainCredentials(username=amqp_username, password=amqp_password)

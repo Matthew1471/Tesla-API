@@ -665,18 +665,21 @@ def main():
     # There's also more fonts in apt packages "fonts-droid" and "fonts-roboto".
     font = ImageFont.truetype(font_path, 20)
 
-    # Should we display the weather?
-    if (credentials.get('latitude') and credentials.get('longitude')
-            and os.path.exists('resources/icons/')):
+    # Whether the weather should be displayed.
+    weather = credentials.get('weather', {})
+    weather_latitude = weather.get('latitude')
+    weather_longitude = weather.get('longitude')
+
+    # Initialize weather display if location and icons are available.
+    screen_weather = None
+    if weather_latitude and weather_longitude and os.path.exists('resources/icons/'):
         screen_weather = ScreenWeather(
             unicornhathd=unicornhathd,
             screen_width=screen_width,
             screen_height=screen_height,
-            latitude=credentials['latitude'],
-            longitude=credentials['longitude']
+            latitude=weather_latitude,
+            longitude=weather_longitude
         )
-    else:
-        screen_weather = None
 
     # Set up an instance of the production screen.
     screen_production = ScreenProduction(
@@ -698,9 +701,10 @@ def main():
     )
 
     # Gather the AMQP details from the credentials file.
-    amqp_host = credentials.get('amqp_host', 'localhost')
-    amqp_username = credentials.get('amqp_username', 'guest')
-    amqp_password = credentials.get('amqp_password', 'guest')
+    amqp = credentials.get('amqp', {})
+    amqp_host = amqp.get('host', 'localhost')
+    amqp_username = amqp.get('username', 'guest')
+    amqp_password = amqp.get('password', 'guest')
 
     # Gather the AMQP credentials into a PlainCredentials object.
     amqp_credentials = pika.PlainCredentials(username=amqp_username, password=amqp_password)

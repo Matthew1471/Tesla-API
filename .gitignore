@@ -7,9 +7,8 @@ Thumbs.db
 # Built releases (from python -m build)
 /Python/dist/
 
-# Files containing our sensitive credentials.
+# File containing our sensitive credentials.
 /Python/examples/configuration/credentials.json
-/Python/examples/configuration/set_tariff.json
 
 # Python pre-compiled cache.
 /Python/**/__pycache__/
