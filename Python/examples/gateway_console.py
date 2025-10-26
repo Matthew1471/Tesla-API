@@ -75,20 +75,20 @@ def get_gateway_session(credentials):
     """
 
     # Do we have a way to obtain an access token?
-    if not credentials.get('gateway_password'):
+    if not credentials.get('password'):
         # Let the user know why the program is exiting.
         raise ValueError(
             'Unable to login to the gateway (missing credentials in credentials.json).'
         )
 
     # Did the user override the library default hostname to the Gateway?
-    host = credentials.get('gateway_host')
+    host = credentials.get('host')
 
     # Instantiate the Gateway API wrapper (with the default library hostname if None provided).
     gateway = Gateway(host)
 
     # Are we not able to login to the gateway?
-    if not gateway.login(credentials['gateway_password']):
+    if not gateway.login(credentials['password']):
         # Let the user know why the program is exiting.
         raise ValueError('Unable to login to the gateway (bad credentials in credentials.json).')
 
@@ -115,7 +115,7 @@ def main():
         credentials = json.load(json_file)
 
     # Get an instance of the Gateway.
-    gateway = get_gateway_session(credentials)
+    gateway = get_gateway_session(credentials.get('gateway', {}))
 
     #More at https://github.com/vloschiavo/powerwall2
     #
