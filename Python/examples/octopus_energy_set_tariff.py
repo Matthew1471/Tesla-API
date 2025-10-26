@@ -41,6 +41,7 @@ import textwrap
 import time
 
 # All the shared Tesla® API functions are in this package.
+from tesla_api.cloud.authentication import Authentication
 from tesla_api.cloud.owner_api import OwnerAPI
 from tesla_api.cloud.tariff_content import TariffContent
 from tesla_api.cloud.tariff import Tariff
@@ -295,6 +296,121 @@ def clean_octopus_energy_response(response):
     # Return the new dictionary.
     return result
 
+def update_tesla_token_configuration(configuration, token_response):
+    """
+    Update the Tesla® token configuration and save it to a JSON file.
+
+    This function creates a new token configuration using the provided token response,
+    adds it to the main configuration dictionary under the 'tesla' key,
+    updates the JSON file with the modified configuration, and returns the reference
+    to the new token configuration.
+
+    Args:
+        configuration (dict): The main configuration dictionary to be updated.
+        token_response (dict): The response containing the new token information.
+
+    Returns:
+        dict: The newly created token configuration dictionary.
+
+    Raises:
+        IOError: If there is an error while writing to the JSON file.
+    """
+
+    # Create a new Tesla® token_configuration.
+    token_configuration = {
+        'current': token_response.get('access_token'),
+        'refresh': token_response.get('refresh_token'),
+        'refresh_expiry': time.time() + token_response.get('expires_in')
+    }
+
+    # Add the token_configuration to the configuration
+    configuration['tesla']['token'] = token_configuration
+
+    # Update the file to include the modified token.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
+
+    # Return the reference to our new token configuration.
+    return token_configuration
+
+def get_tesla_api_session(configuration):
+    """
+    Establishes a session with the Tesla® Owner API.
+
+    This function manages the authentication process to establish a session with Tesla®.
+
+    It initialises the Owner API wrapper for subsequent interactions.
+
+    Args:
+        credentials (dict): A dictionary containing the required credentials.
+
+    Returns:
+        OwnerAPI: An initialised API wrapper object for interacting with Tesla® Owner API.
+
+    Raises:
+        ValueError: If authentication fails or if required credentials are missing.
+    """
+
+    # Get a reference just to the tesla_configuration.
+    tesla_configuration = configuration.get('tesla', {})
+
+    # Attempt to get a reference to just the token_configuration.
+    token_configuration = tesla_configuration.get('token', {})
+
+    # Instantiate the Tesla API wrapper.
+    owner_api = OwnerAPI()
+
+    # Attempt to obtain current token.
+    current_token = token_configuration.get('current')
+
+    # Do we have a valid JSON Web Token (JWT) to be able to use the service?
+    if not (current_token and Authentication.check_token_valid(current_token)):
+        # It is not valid so clear it.
+        token_configuration['current'] = None
+
+        # Try refresh token if available and not expired
+        refresh_token = token_configuration.get('refresh')
+        refresh_expiry = token_configuration.get('refresh_expiry')
+        if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
+            # Get a JWT from our Tesla® refresh token.
+            response = Authentication.refresh_token(refresh_token)
+
+            # Update the configuration dictionary, file and reference.
+            token_configuration = update_tesla_token_configuration(
+                configuration, response
+            )
+
+    # Do we still not have a Token?
+    if not token_configuration.get('current'):
+        # Get a JWT from our Tesla login.
+        code_verifier, state = Authentication.authenticate()
+
+        # Ask the user for the code.
+        code = None
+        while not code:
+            user_url = input('Please enter the tesla:// URL that the login page returns after you log in:\n')
+
+            # Attempt to obtain the code.
+            code = Authentication.parse_callback(state, user_url)
+
+            # If the code does not match the expected format, tell the user to try again.
+            if not code:
+                print('Callback is incorrect, please try again.\n\n')
+
+        # Exchange the code for a token.
+        response = Authentication.get_token(code, code_verifier)
+
+        # Update the configuration dictionary, file and reference.
+        token_configuration = update_tesla_token_configuration(
+            configuration, response
+        )
+
+    # Apply the token to our Owner API instance.
+    owner_api.set_token(token_configuration.get('current'))
+
+    # Return the initialised owner_api object.
+    return owner_api
+
 def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
     """
     Update the Tesla® energy site ID configuration and save it to a JSON file.
@@ -363,12 +479,17 @@ def get_tesla_tou_periods(octopus_tariff, reduce_battery_wear=True):
         buy_rates = [None] * HALF_HOUR_PERIODS_PER_DAY
 
         # Start of the day (midnight).
-        start_of_day = datetime.datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+        now = datetime.datetime.now().astimezone()
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         # Populate the buy_rates array.
         for unit_rate in octopus_tariff['import']['unitRates']:
             start = datetime.datetime.fromisoformat(unit_rate['validFrom']).astimezone()
             end = datetime.datetime.fromisoformat(unit_rate['validTo']).astimezone()
+
+            # Skip any rates in the past.
+            if end < now:
+                continue
 
             # Convert the unitRates' value to pounds.
             buy_rate = unit_rate['value'] / 100
@@ -604,38 +725,38 @@ def get_tesla_tou_settings(octopus_tariff):
         }
     }
 
-def update_tesla_tariff(configuration, time_of_use_settings):
+def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Get a reference to the tesla section of the configuration.
     tesla_configuration = configuration.get('tesla')
 
-    # Call Tesla® owner API.
-    owner_api = OwnerAPI()
-    owner_api.set_token(tesla_configuration.get('token', {})['current'])
-
     # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
     if 'energy_site_id' in tesla_configuration:
-        energy_site_id = tesla_configuration.get('energy_site_id')
-    else:
-        # A Tesla® account can contain multiple energy products.
-        energy_site_ids = get_tesla_energy_site_ids(owner_api)
+        return tesla_configuration.get('energy_site_id')
 
-        # Print the energy_site_id for the user.
-        print('Found Energy Site ID(s): ', end='')
-        print(*energy_site_ids, sep=', ')
+    # A Tesla® account can contain multiple energy products.
+    energy_site_ids = get_tesla_energy_site_ids(owner_api)
 
-        # It is undesirable to change TOU settings on an arbitrary site.
-        if len(energy_site_ids) != 1:
-            raise ValueError(
-                f'You have {len(energy_site_ids)} energy products under this account. '
-                'You must manually set one to change in the configuration.'
-            )
+    # Print the energy_site_id for the user.
+    print('Found Energy Site ID(s): ', end='')
+    print(*energy_site_ids, sep=', ')
 
-        # Pick the only energy_site_id.
-        energy_site_id = energy_site_ids[0]
+    # It is undesirable to change TOU settings on an arbitrary site.
+    if len(energy_site_ids) != 1:
+        raise ValueError(
+            f'You have {len(energy_site_ids)} energy products under this account. '
+            'You must manually set one to change in the configuration.'
+        )
 
-        # Store the energy_site_id for future use.
-        update_tesla_energy_site_id_configuration(configuration, energy_site_id)
+    # Pick the only energy_site_id.
+    energy_site_id = energy_site_ids[0]
 
+    # Store the energy_site_id for future use.
+    update_tesla_energy_site_id_configuration(configuration, energy_site_id)
+
+    # Return the discovered energy_site_id.
+    return energy_site_id
+
+def update_tesla_tariff(owner_api, energy_site_id, time_of_use_settings):
     # Set the time of use settings and return the response.
     return owner_api.api_call(
         path = f'/api/1/energy_sites/{energy_site_id}/time_of_use_settings',
@@ -682,8 +803,14 @@ def main():
     # Print out the Tesla time of use settings.
     print('Tesla:\n\n' + json.dumps(time_of_use_settings, indent=4))
 
+    # Get an authenticated instance of the API.
+    owner_api = get_tesla_api_session(configuration)
+
+    # Get the energy site ID.
+    energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
+
     # Update Tesla Tariff.
-    response = update_tesla_tariff(configuration, time_of_use_settings)
+    response = update_tesla_tariff(owner_api, energy_site_id, time_of_use_settings)
 
     # Print out the server's response.
     print(json.dumps(response, indent=4))
