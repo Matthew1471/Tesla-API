@@ -24,6 +24,7 @@
     <Compile Include="examples\amqp_unicorn_hat_hd.py" />
     <Compile Include="examples\gateway_amqp_meters.py" />
     <Compile Include="examples\gateway_console.py" />
+    <Compile Include="examples\jwks_convert.py" />
     <Compile Include="examples\octopus_energy_set_tariff.py" />
     <Compile Include="src\tesla_api\cloud\__init__.py" />
     <Compile Include="src\tesla_api\cloud\owner_api.py" />
