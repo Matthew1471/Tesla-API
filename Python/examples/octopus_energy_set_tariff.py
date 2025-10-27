@@ -347,7 +347,7 @@ def get_tesla_api_session(configuration):
     # Attempt to get a reference to just the token_configuration.
     token_configuration = tesla_configuration.get('token', {})
 
-    # Instantiate the Tesla API wrapper.
+    # Instantiate the Tesla® API wrapper.
     owner_api = OwnerAPI()
 
     # Attempt to obtain current token.
@@ -372,7 +372,7 @@ def get_tesla_api_session(configuration):
 
     # Do we still not have a Token?
     if not token_configuration.get('current'):
-        # Get a JWT from our Tesla login.
+        # Get a JWT from our Tesla® login.
         code_verifier, state = Authentication.authenticate()
 
         # Ask the user for the code.
@@ -435,7 +435,7 @@ def get_tesla_energy_site_ids(owner_api):
 
     # Can this be parsed.
     if 'response' not in response:
-        raise ValueError('Unable to process Tesla products response.')
+        raise ValueError('Unable to process Tesla® products response.')
 
     # Take each product.
     for product in response['response']:
@@ -698,7 +698,7 @@ def get_tesla_tou_settings(octopus_tariff):
     }
 
 def get_or_update_tesla_energy_site_id(configuration, owner_api):
-    # Get a reference to the tesla section of the configuration.
+    # Get a reference to the 'tesla' section of the configuration.
     tesla_configuration = configuration.get('tesla')
 
     # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
@@ -754,7 +754,7 @@ def main():
     with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
 
-    # Get a reference to the octopus_energy section of the configuration.
+    # Get a reference to the 'octopus_energy' section of the configuration.
     octopus_energy_configuration = configuration.get('octopus_energy')
 
     # Get an authenticated instance of the Octopus Energy® API.
@@ -768,10 +768,10 @@ def main():
     # Print out the Octopus Tariff.
     print('Octopus Tariff:\n\n' + json.dumps(octopus_tariff, indent=4) + '\n')
 
-    # Get the Tesla time of use settings.
+    # Get the Tesla® time of use settings.
     time_of_use_settings = get_tesla_tou_settings(octopus_tariff)
 
-    # Print out the Tesla time of use settings.
+    # Print out the Tesla® time of use settings.
     print('Tesla:\n\n' + json.dumps(time_of_use_settings, indent=4))
 
     # Get an authenticated instance of the Tesla® Owner API.
@@ -780,7 +780,7 @@ def main():
     # Get the energy site ID.
     energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
 
-    # Update Tesla Tariff.
+    # Update Tesla® Tariff.
     response = update_tesla_tariff(owner_api, energy_site_id, time_of_use_settings)
 
     # Print out the server's response.
