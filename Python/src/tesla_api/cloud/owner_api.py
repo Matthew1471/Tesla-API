@@ -69,14 +69,13 @@ class OwnerAPI:
         # We append an OAuth 2.0 token to future requests.
         self.headers['Authorization'] = 'Bearer ' + token
 
-    def api_call(self, path, method='GET', data=None, json=None, response_raw=False):
+    def api_call(self, path, method='GET', json=None, response_raw=False):
         """
         Make an API call (HTML form or JSON data) to the owner API.
 
         Args:
             path (str): The API endpoint path.
             method (str, optional): The HTTP method for the request. Defaults to 'GET'.
-            data (dict, optional): HTML form data for the request body. Defaults to None.
             json (dict, optional): JSON data for the request body. Defaults to None.
             response_raw (bool, optional): If True, return the raw response. Defaults to False.
 
@@ -85,12 +84,11 @@ class OwnerAPI:
                 JSON response if response_raw is False, raw response if response_raw is True.
         """
 
-        # Call the owner API endpoint (optionally with form or JSON data).
+        # Call the owner API endpoint (optionally with JSON data).
         response = self.session.request(
             method=method,
             url=f'{self.HOST}{path}',
             headers=self.headers,
-            data=data,
             json=json,
             timeout=self.TIMEOUT
         )
