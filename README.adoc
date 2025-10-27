@@ -35,13 +35,19 @@ Tesla-API is an unofficial project providing an API wrapper for Tesla(R)'s produ
 
 This project is focusing primarily on the Tesla(R) Gateway, the gateway for Tesla(R)'s Powerwall(R) battery storage used to store solar panel and grid energy to be directly consumed by the home.
 
-WARNING: This project currently predominantly consumes the same local API that the local Gateway web administration portal consumes and Tesla(R) may choose to change it in subsequent updates without warning.
+WARNING: This project currently predominantly consumes the same APIs that the mobile application and local Gateway web administration portal consumes and Tesla(R) may choose to change either in subsequent updates without warning.
 
-There is no official route for production applications to use the Tesla(R) data other than the https://www.tesla.com/en_gb/support/tesla-app[Tesla(R) App] and the https://www.tesla.com/en_gb/support/energy/powerwall/own/connecting-network[Tesla(R) web brower interface].
+There is no official route for production applications to use the Tesla(R) data other than via:
+
+* https://developer.tesla.com/[Fleet API] (requires hosting a website)
+* The https://www.tesla.com/en_gb/support/tesla-app[Tesla(R) App] (not officially supported for automation).
+* The legacy LAN https://web.archive.org/web/20250217181200/https://www.tesla.com/en_gb/support/energy/powerwall/own/connecting-network[Tesla(R) web brower interface] (being phased out).
 
 == Documentation
 
 The documentation for the wrapper and the API itself is at link:Documentation/README.adoc[Documentation/README.adoc]
+
+The Cloud Owner API endpoints are listed at link:Documentation/Cloud/Owner%20API/README.adoc[Documentation/Cloud/Owner API/README.adoc]
 
 == Copyright and License
 
