@@ -754,7 +754,7 @@ def main():
     # Get a reference to the octopus_energy section of the configuration.
     octopus_energy_configuration = configuration.get('octopus_energy')
 
-    # Get an authenticated instance of the API.
+    # Get an authenticated instance of the Octopus Energy® API.
     octopus_energy = get_octopus_energy_api_session(configuration)
 
     # Get the tariff.
@@ -771,7 +771,7 @@ def main():
     # Print out the Tesla time of use settings.
     print('Tesla:\n\n' + json.dumps(time_of_use_settings, indent=4))
 
-    # Get an authenticated instance of the API.
+    # Get an authenticated instance of the Tesla® Owner API.
     owner_api = get_tesla_api_session(configuration)
 
     # Get the energy site ID.
