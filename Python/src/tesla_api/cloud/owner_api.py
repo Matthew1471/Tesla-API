@@ -71,7 +71,7 @@ class OwnerAPI:
 
     def api_call(self, path, method='GET', json=None, response_raw=False):
         """
-        Make an API call (HTML form or JSON data) to the owner API.
+        Make an API call (with optional JSON data) to the owner API.
 
         Args:
             path (str): The API endpoint path.
