@@ -41,8 +41,8 @@ import time
 # All the shared Tesla® API functions are in this package.
 from tesla_api.cloud.authentication import Authentication
 from tesla_api.cloud.owner_api import OwnerAPI
-from tesla_api.cloud.tariff_content import TariffContent
 from tesla_api.cloud.tariff import Tariff
+from tesla_api.cloud.tariff_content import TariffContent
 
 # All the shared Octopus Energy® functions are in this package.
 from tesla_api.octopus_energy import OctopusEnergy
@@ -307,7 +307,10 @@ def update_tesla_token_configuration(configuration, token_response):
     token_configuration = {
         'current': token_response.get('access_token'),
         'refresh': token_response.get('refresh_token'),
-        'refresh_expiry': time.time() + token_response.get('expires_in')
+
+        # https://developer.tesla.com/docs/fleet-api/authentication/third-party-tokens
+        # https://techdocs.akamai.com/identity-cloud/docs/modify-token-lifetimes
+        'refresh_expiry': time.time() + 7776000
     }
 
     # Add the token_configuration to the configuration
