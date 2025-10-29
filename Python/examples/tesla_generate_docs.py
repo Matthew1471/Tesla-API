@@ -102,7 +102,7 @@ class DocumentationGenerator:
         """
         Generate the introduction section for Tesla-API documentation.
 
-        This function constructs the introduction section for the Enphase-API documentation.
+        This function constructs the introduction section for the Tesla-API documentation.
         It includes a heading, an optional description, and details about the project.
 
         Args:
@@ -191,7 +191,6 @@ class IndexDocumentationGenerator:
         # Write each of the endpoints.
         for key in endpoint_metadata:
             metadata = endpoint_metadata[key]
-            path = metadata.get('URI').split('/')
 
             # Add the item.
             result += f'|`{key}`\n'
@@ -237,7 +236,7 @@ class IndexDocumentationGenerator:
 
 def main():
     """
-    Generate Enphase-API documentation in AsciiDoc.
+    Generate Tesla-API documentation in AsciiDoc.
 
     This function loads endpoint metadata, attempts to call undocumented endpoints,
     determines their schema, and writes the corresponding documentation.
@@ -259,7 +258,7 @@ def main():
 
         # Add leading slash.
         for key in data:
-            # Skip this one.
+            # Skip this specific item.
             if key == 'MATTERMOST':
                 continue
 
