@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "KeyIdentity";
+
+message KeyIdentity {
+  reserved 2;
+  oneof identity_type {
+    bytes public_key = 1;
+    uint32 handle = 3;
+  }
+}

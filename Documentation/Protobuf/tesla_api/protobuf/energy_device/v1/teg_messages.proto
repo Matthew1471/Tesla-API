@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "TEGMessages";
+
+import "tesla_api/protobuf/energy_device/v1/teg_api_cancel_manual_backup_event_request.proto";
+import "tesla_api/protobuf/energy_device/v1/teg_api_cancel_manual_backup_event_response.proto";
+import "tesla_api/protobuf/energy_device/v1/teg_api_schedule_manual_backup_event_request.proto";
+import "tesla_api/protobuf/energy_device/v1/teg_api_schedule_manual_backup_event_response.proto";
+
+message TEGMessages {
+  oneof message {
+    //TEGAPIGetConfigRequest get_config_request                                                              = 1;
+    //TEGAPIGetConfigResponse get_config_response                                                            = 2;
+    //TEGAPISetIslandModeRequest set_island_mode_request                                                     = 3;
+    //TEGAPISetIslandModeResponse set_island_mode_response                                                   = 4;
+    //TEGAPITriggerIslandingBlackStartRequest trigger_islanding_black_start_request                          = 5;
+    //TEGAPITriggerIslandingBlackStartResponse trigger_islanding_black_start_response                        = 6;
+    //TEGAPITriggerAssetManifestUploadRequest trigger_asset_manifest_upload_request                          = 7;
+    //TEGAPITriggerAssetManifestUploadResponse trigger_asset_manifest_upload_response                        = 8;
+    //TEGAPITriggerPowerwall2EnumerationRequest trigger_powerwall2_enumeration_request                       = 9;
+    //TEGAPITriggerPowerwall2EnumerationResponse trigger_powerwall2_enumeration_response                     = 10;
+    //TEGAPITriggerEsCanFirmwareUpdateRequest trigger_es_can_firmware_update_request                         = 11;
+    //TEGAPITriggerEsCanFirmwareUpdateResponse trigger_es_can_firmware_update_response                       = 12;
+    //TEGAPIRegisterRequest register_request                                                                 = 13;
+    //TEGAPIRegisterResponse register_response                                                               = 14;
+    //TEGAPITriggerPowerwall2PhaseDetectionRequest trigger_powerwall2_phase_detection_request                = 15;
+    //TEGAPITriggerPowerwall2PhaseDetectionResponse trigger_powerwall2_phase_detection_response              = 16;
+    //TEGAPIResetPowerwall2PhaseDetectionRequest reset_powerwall2_phase_detection_request                    = 17;
+    //TEGAPIResetPowerwall2PhaseDetectionResponse reset_powerwall2_phase_detection_response                  = 18;
+    //TEGAPIForceWifiScanRequest force_wifi_scan_request                                                     = 19;
+    //TEGAPIForceWifiScanResponse force_wifi_scan_response                                                   = 20;
+    //TEGAPIStartPowerwall2InverterSelfTestsRequest start_powerwall2_inverter_self_tests_request             = 21;
+    //TEGAPIStartPowerwall2InverterSelfTestsResponse start_powerwall2_inverter_self_tests_response           = 22;
+    //TEGAPIStopPowerwall2InverterSelfTestsRequest stop_powerwall2_inverter_self_tests_request               = 23;
+    //TEGAPIStopPowerwall2InverterSelfTestsResponse stop_powerwall2_inverter_self_tests_response             = 24;
+    //TEGAPIStartPowerwall2BubbleShedRequest start_powerwall2_bubble_shed_request                            = 25;
+    //TEGAPIStartPowerwall2BubbleShedResponse start_powerwall2_bubble_shed_response                          = 26;
+    //TEGAPIClearSolarInverterAlertsRequest clear_solar_inverter_alerts_request                              = 27;
+    //TEGAPIClearSolarInverterAlertsResponse clear_solar_inverter_alerts_response                            = 28;
+    //TEGAPIGetWifiConfigWithCredentialsRequest get_wifi_config_with_credentials_request                     = 29;
+    //TEGAPIGetWifiConfigWithCredentialsResponse get_wifi_config_with_credentials_response                   = 30;
+    //TEGAPIDisableBatteriesRequest disable_batteries_request                                                = 31;
+    //TEGAPIDisableBatteriesResponse disable_batteries_response                                              = 32;
+    //TEGAPITriggerPW3CanFirmwareUpdateRequest trigger_p_w3_can_firmware_update_request                      = 33;
+    //TEGAPITriggerPW3CanFirmwareUpdateResponse trigger_p_w3_can_firmware_update_response                    = 34;
+    //TEGAPITriggerPowerwall3EnumerationRequest trigger_powerwall3_enumeration_request                       = 35;
+    //TEGAPITriggerPowerwall3EnumerationResponse trigger_powerwall3_enumeration_response                     = 36;
+    //TEGAPIDispatchBatteryPowerRequest dispatch_battery_power_request                                       = 37;
+    //TEGAPIDispatchBatteryPowerResponse dispatch_battery_power_response                                     = 38;
+    //TEGAPIDetectWiredMetersRequest detect_wired_meters_request                                             = 39;
+    //TEGAPIDetectWiredMetersResponse detect_wired_meters_response                                           = 40;
+    //TEGAPIBypassBatterySoeAdjustmentConstraintsRequest bypass_battery_soe_adjustment_constraints_request   = 41;
+    //TEGAPIBypassBatterySoeAdjustmentConstraintsResponse bypass_battery_soe_adjustment_constraints_response = 42;
+    //TEGAPIEnsureCertificateRequest ensure_certificate_request                                              = 43;
+    //TEGAPIEnsureCertificateResponse ensure_certificate_response                                            = 44;
+    TEGAPIScheduleManualBackupEventRequest schedule_manual_backup_event_request                              = 45;
+    TEGAPIScheduleManualBackupEventResponse schedule_manual_backup_event_response                            = 46;
+    TEGAPICancelManualBackupEventRequest cancel_manual_backup_event_request                                  = 47;
+    TEGAPICancelManualBackupEventResponse cancel_manual_backup_event_response                                = 48;
+    //TEGAPIGetBackupEventsRequest get_backup_events_request                                                 = 49;
+    //TEGAPIGetBackupEventsResponse get_backup_events_response                                               = 50;
+    //TEGAPIGetCsmsPropertiesRequest get_csms_properties_request                                             = 51;
+    //TEGAPIGetCsmsPropertiesResponse get_csms_properties_response                                           = 52;
+    //TEGAPIConfigureOcppRequest configure_ocpp_request                                                      = 53;
+    //TEGAPIConfigureOcppResponse configure_ocpp_response                                                    = 54;
+    //TEGAPIRetrieveSiteUuidRequest retrieve_site_uuid_request                                               = 55;
+    //TEGAPIRetrieveSiteUuidResponse retrieve_site_uuid_response                                             = 56;
+    //TEGAPIRetrieveSiteSuggestionRequest retrieve_site_suggestion_request                                   = 57;
+    //TEGAPIRetrieveSiteSuggestionResponse retrieve_site_suggestion_response                                 = 58;
+    //TEGAPIStartProtectionTripSelfTestRequest start_protection_trip_self_test_request                       = 59;
+    //TEGAPIStartProtectionTripSelfTestResponse start_protection_trip_self_test_response                     = 60;
+    //TEGAPIStopProtectionTripSelfTestRequest stop_protection_trip_self_test_request                         = 61;
+    //TEGAPIStopProtectionTripSelfTestResponse stop_protection_trip_self_test_response                       = 62;
+    //TEGAPIProvisionEatonSmartBreakerRequest provision_eaton_smart_breaker_request                          = 63;
+    //TEGAPIProvisionEatonSmartBreakerResponse provision_eaton_smart_breaker_response                        = 64;
+    //TEGAPIIdentifyEatonSmartBreakerRequest identify_eaton_smart_breaker_request                            = 65;
+    //TEGAPIIdentifyEatonSmartBreakerResponse identify_eaton_smart_breaker_response                          = 66;
+    //TEGAPITriggerPvacFanSelfTestRequest trigger_pvac_fan_self_test_request                                 = 67;
+    //TEGAPITriggerPvacFanSelfTestResponse trigger_pvac_fan_self_test_response                               = 68;
+    //TEGAPIProxyPrepareRegistrationPayloadRequest proxy_prepare_registration_payload_request                = 69;
+    //TEGAPIProxyPrepareRegistrationPayloadResponse proxy_prepare_registration_payload_response              = 70;
+    //TEGAPITriggerWallboxVehicleAbsentSelfTestRequest trigger_wallbox_vehicle_absent_self_test_request      = 71;
+    //TEGAPITriggerWallboxVehicleAbsentSelfTestResponse trigger_wallbox_vehicle_absent_self_test_response    = 72;
+    //TEGAPICustomerResetRequest customer_reset_request                                                      = 73;
+    //TEGAPICustomerResetResponse customer_reset_response                                                    = 74;
+  }
+}

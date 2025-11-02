@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "Destination";
+
+import "tesla_api/protobuf/universal_message/domain.proto";
+
+message Destination {
+  oneof sub_destination{
+    Domain domain          = 1;
+    bytes routing_address = 2;
+  }
+}

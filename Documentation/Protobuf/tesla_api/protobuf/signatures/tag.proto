@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "Tag";
+
+enum Tag
+{
+  TAG_SIGNATURE_TYPE  = 0;
+  TAG_DOMAIN          = 1;
+  TAG_PERSONALIZATION = 2;
+  TAG_EPOCH           = 3;
+  TAG_EXPIRES_AT      = 4;
+  TAG_COUNTER         = 5;
+  TAG_CHALLENGE       = 6;
+  TAG_FLAGS           = 7;
+  TAG_REQUEST_HASH    = 8;
+  TAG_FAULT           = 9;
+  TAG_END             = 255;
+}

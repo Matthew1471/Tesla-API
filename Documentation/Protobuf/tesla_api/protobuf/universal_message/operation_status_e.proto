@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "OperationStatusE";
+
+enum OperationStatusE
+{
+  OPERATIONSTATUS_OK    = 0;
+  OPERATIONSTATUS_WAIT  = 1;
+  OPERATIONSTATUS_ERROR = 2;
+}

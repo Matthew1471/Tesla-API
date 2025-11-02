@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "DeliveryChannel";
+
+enum DeliveryChannel {
+  DELIVERY_CHANNEL_INVALID        = 0;
+  DELIVERY_CHANNEL_LOCAL_HTTPS    = 1;
+  DELIVERY_CHANNEL_HERMES_COMMAND = 2;
+  DELIVERY_CHANNEL_BLE            = 3;
+}

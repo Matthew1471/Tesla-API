@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "HmacPersonalizedSignatureData";
+
+message HmacPersonalizedSignatureData {
+  bytes   epoch      = 1;
+  uint32  counter    = 2;
+  fixed32 expires_at = 3;
+  bytes   tag        = 4;
+}

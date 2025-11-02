@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "SessionInfo";
+
+import "tesla_api/protobuf/signatures/session_info_status.proto";
+
+message SessionInfo {
+  uint32  counter          = 1;
+  bytes   publicKey        = 2;
+  bytes   epoch            = 3;
+  fixed32 clock_time       = 4;
+  SessionInfoStatus status = 5;
+  uint32  handle           = 6;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "Flags";
+
+enum Flags {
+  FLAG_USER_COMMAND     = 0;
+  FLAG_ENCRYPT_RESPONSE = 1;
+}

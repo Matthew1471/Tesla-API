@@ -37,6 +37,32 @@
     <Compile Include="src\tesla_api\local\gateway.py" />
     <Compile Include="src\tesla_api\octopus_energy\__init__.py" />
     <Compile Include="src\tesla_api\octopus_energy\api.py" />
+    <Compile Include="src\tesla_api\protobuf\__init__.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\authorized_client_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\control_event_scheduling_info_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\delivery_channel_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\local_participant_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\message_envelope_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\participant_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\teg_api_cancel_manual_backup_event_request_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\teg_api_cancel_manual_backup_event_response_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\teg_api_schedule_manual_backup_event_request_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\teg_api_schedule_manual_backup_event_response_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\teg_messages_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\tesla_service_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\aes_gcm_personalized_signature_data_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\aes_gcm_response_signature_data_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\hmac_personalized_signature_data_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\hmac_signature_data_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\key_identity_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\signatures\signature_data_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\destination_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\domain_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\message_fault_e_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\message_status_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\operation_status_e_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\routable_message_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\session_info_request_pb2.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="examples\" />
@@ -45,6 +71,11 @@
     <Folder Include="src\tesla_api\cloud\" />
     <Folder Include="src\tesla_api\local\" />
     <Folder Include="src\tesla_api\octopus_energy\" />
+    <Folder Include="src\tesla_api\protobuf\" />
+    <Folder Include="src\tesla_api\protobuf\energy_device\" />
+    <Folder Include="src\tesla_api\protobuf\energy_device\v1\" />
+    <Folder Include="src\tesla_api\protobuf\signatures\" />
+    <Folder Include="src\tesla_api\protobuf\universal_message\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

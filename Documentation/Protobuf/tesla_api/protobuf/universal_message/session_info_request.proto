@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "SessionInfoRequest";
+
+message SessionInfoRequest
+{
+  bytes public_key = 1;
+  bytes challenge  = 2;
+}

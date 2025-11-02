@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "SignatureType";
+
+enum SignatureType
+{
+  SIGNATURE_TYPE_AES_GCM              = 0;
+  SIGNATURE_TYPE_ECDSA                = 1;
+  SIGNATURE_TYPE_PRESENT_KEY          = 2;
+  SIGNATURE_TYPE_AES_GCM_TOKEN        = 3;
+  SIGNATURE_TYPE_ECDSA_PERSONALIZED   = 4;
+  SIGNATURE_TYPE_AES_GCM_PERSONALIZED = 5;
+  SIGNATURE_TYPE_HMAC                 = 6;
+  SIGNATURE_TYPE_RSA                  = 7;
+  SIGNATURE_TYPE_HMAC_PERSONALIZED    = 8;
+  SIGNATURE_TYPE_AES_GCM_RESPONSE     = 9;
+}

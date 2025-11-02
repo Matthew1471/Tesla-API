@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "Domain";
+
+enum Domain {
+  DOMAIN_BROADCAST          = 0;
+  DOMAIN_VEHICLE_SECURITY   = 2;
+  DOMAIN_INFOTAINMENT       = 3;
+  DOMAIN_AUTHD              = 5;
+  DOMAIN_ENERGY_DEVICE      = 7;
+  DOMAIN_ENERGY_DEVICE_AUTH = 8;
+}

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package UniversalMessage;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
+option java_package = "com.tesla.generated.universalmessage";
+option java_outer_classname = "RoutableMessage";
+
+import "tesla_api/protobuf/signatures/signature_data.proto";
+import "tesla_api/protobuf/universal_message/destination.proto";
+import "tesla_api/protobuf/universal_message/message_status.proto";
+import "tesla_api/protobuf/universal_message/session_info_request.proto";
+
+message RoutableMessage {
+  reserved 1 to 5;
+  reserved 11;
+  reserved 16 to 40;
+  Destination to_destination   = 6;
+  Destination from_destination = 7;
+
+  oneof payload {
+    // payload_not_set                      = 0;
+    bytes protobuf_message_as_bytes         = 10;
+    SessionInfoRequest session_info_request = 14;
+    bytes session_info                      = 15;
+  }
+
+  oneof sub_sigData {
+    Signatures.SignatureData signature_data = 13;
+  }
+
+  MessageStatus signedMessageStatus = 12;
+  bytes request_uuid                = 50;
+  bytes uuid                        = 51;
+  uint32 flags = 52;
+}

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package Signatures;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures";
+option java_package = "com.tesla.generated.signatures";
+option java_outer_classname = "SessionInfoStatus";
+
+enum SessionInfoStatus {
+  SESSION_INFO_STATUS_OK                   = 0;
+  SESSION_INFO_STATUS_KEY_NOT_ON_WHITELIST = 1;
+}
