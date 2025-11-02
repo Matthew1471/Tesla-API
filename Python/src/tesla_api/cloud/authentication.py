@@ -254,6 +254,40 @@ class Authentication:
         return response.json()
 
     @staticmethod
+    def logout(id_token, domain=AUTHENTICATION_HOST):
+        """
+        This performs a logout with an OpenID Connect (OIDC) ID token.
+
+        Args:
+            id_token (str): The OpenID Connect (OIDC) ID token.
+            domain (str, optional): Specify the auth server to ask to logout.
+                                        Defaults to the main auth server.
+                                        For Fleet API this must be 'fleet-auth.prd.vn.cloud.tesla.com' as
+                                        these calls can come from application servers and require different 
+                                        rate limits.
+
+        Returns:
+            string: The HTML response confirming successful sign out.
+        """
+
+        # Build the logout request parameters.
+        params = {
+            'id_token_hint': id_token,
+            'post_logout_redirect_uri': 'tesla://auth/callback'
+        }
+
+        # Attempt to perform the logout.
+        response = requests.post(
+            url=f'{domain}/oauth2/v3/logout',
+            headers=Authentication.HEADERS,
+            params=params,
+            timeout=Authentication.TIMEOUT
+        )
+
+        # Return the HTML response.
+        return response.content
+
+    @staticmethod
     def check_token_valid(token, verify_signature=False):
         """
         This performs JWT token validation to confirm whether a token would likely be valid for an
