@@ -523,17 +523,16 @@ def get_tesla_tou_periods(octopus_tariff, reduce_battery_wear=True):
         # Convert to pounds.
         fixed_sell_rate = octopus_tariff['export']['unitRate'] / 100
 
-        # Precompute the first key and cheapest buy rate for clarity and efficiency.
-        first_key = buy_categories[0]
+        # Precompute the cheapest buy rate for clarity and efficiency.
         cheapest_buy_rate = sorted_buy_rates[0]
 
         # Reproduce every used buy category but with a fixed sell rate.
         sell_categories_to_rates = {
             # Use a flag to handle the non-cheapest buy rates explicitly when overriding for reduce_battery_wear.
-            key: (cheapest_buy_rate if reduce_battery_wear and key != first_key else fixed_sell_rate)
+            key: (cheapest_buy_rate if reduce_battery_wear else fixed_sell_rate)
             for key in buy_categories
         }
-        sorted_sell_rates = set([cheapest_buy_rate, fixed_sell_rate]) if reduce_battery_wear else set([fixed_sell_rate])
+        sorted_sell_rates = [cheapest_buy_rate, cheapest_buy_rate] if reduce_battery_wear else set([fixed_sell_rate])
         sell_rates_count = len(buy_categories)
     elif octopus_tariff['export']['__typename'] == 'HalfHourlyTariff':
 
