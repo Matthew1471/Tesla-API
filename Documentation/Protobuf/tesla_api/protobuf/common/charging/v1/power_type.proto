@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tesla.proto.common.charging.v1;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/common/charging";
+option java_package = "com.tesla.generated.common.charging";
+option java_outer_classname = "PowerType";
+
+enum powerType {
+  POWER_TYPE_INVALID    = 0;
+  POWER_TYPE_AC_1_PHASE = 1;
+  POWER_TYPE_AC_3_PHASE = 2;
+  POWER_TYPE_DC         = 3;
+}

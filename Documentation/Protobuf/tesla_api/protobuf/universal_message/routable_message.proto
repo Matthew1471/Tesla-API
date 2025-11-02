@@ -8,6 +8,7 @@ option java_outer_classname = "RoutableMessage";
 
 import "tesla_api/protobuf/signatures/signature_data.proto";
 import "tesla_api/protobuf/universal_message/destination.proto";
+import "tesla_api/protobuf/universal_message/flags.proto";
 import "tesla_api/protobuf/universal_message/message_status.proto";
 import "tesla_api/protobuf/universal_message/session_info_request.proto";
 
@@ -29,8 +30,8 @@ message RoutableMessage {
     Signatures.SignatureData signature_data = 13;
   }
 
-  MessageStatus signedMessageStatus = 12;
-  bytes request_uuid                = 50;
-  bytes uuid                        = 51;
-  uint32 flags = 52;
+  MessageStatus signed_message_status = 12;
+  bytes request_uuid                  = 50;
+  bytes uuid                          = 51;
+  Flags flags                         = 52;
 }

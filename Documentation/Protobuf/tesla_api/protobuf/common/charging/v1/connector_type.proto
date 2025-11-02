@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package tesla.proto.common.charging.v1;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/common/charging";
+option java_package = "com.tesla.generated.common.charging";
+option java_outer_classname = "ConnectorType";
+
+enum ConnectorType {
+  CONNECTOR_TYPE_INVALID                       = 0;
+  CONNECTOR_TYPE_CCS1                          = 1;
+  CONNECTOR_TYPE_CCS2                          = 2;
+  CONNECTOR_TYPE_GB                            = 3;
+  CONNECTOR_TYPE_NA                            = 4;
+  CONNECTOR_TYPE_TYPE_2                        = 5;
+  CONNECTOR_TYPE_J1772                         = 6;
+  CONNECTOR_TYPE_INDISTINGUISHABLE_DUAL_HANDLE = 7;
+  CONNECTOR_TYPE_UNKNOWN                       = 8;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tesla.proto.energy.command.v1;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/command";
+option java_package = "com.tesla.generated.command";
+option java_outer_classname = "IdentifierType";
+
+enum IdentifierType {
+  IDENTIFIER_TYPE_INVALID            = 0;
+  IDENTIFIER_TYPE_GATEWAY_DIN        = 1;
+  IDENTIFIER_TYPE_SITE_UUID          = 2;
+  IDENTIFIER_TYPE_SOLAR_INVERTER_DIN = 3;
+  IDENTIFIER_TYPE_WALL_CONNECTOR_DIN = 4;
+}

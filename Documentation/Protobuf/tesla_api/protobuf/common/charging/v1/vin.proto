@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tesla.proto.common.charging.v1;
+
+option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/common/charging";
+option java_package = "com.tesla.generated.common.charging";
+option java_outer_classname = "VIN";
+
+message VIN {
+  string value = 1;
+}
