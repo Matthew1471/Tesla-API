@@ -78,7 +78,7 @@ WARNING: Note how the script connected to the gateway via HTTPS but yet did not 
 
 It is highly recommended you look at the examples in a text-editor to learn more about the features of the library (and to see how this flow is typically implemented).
 
-The IQ Gateway API endpoints are best documented elsewhere on https://github.com/vloschiavo/powerwall2[vloschiavo's powerwall2 project].
+The Tesla(R) Gateway API endpoints are best documented elsewhere on https://github.com/vloschiavo/powerwall2[vloschiavo's powerwall2 project].
 
 == Examples
 
@@ -96,6 +96,12 @@ The IQ Gateway API endpoints are best documented elsewhere on https://github.com
 |MySQL(R)/MariaDB(R)
 |Consumes meter messages from AMQP and stores it in a MySQL(R)/MariaDB(R) database (schema is in the resources folder).
 
+|link:../../../Python/examples/amqp_state_of_energy.pyw[`amqp_state_of_energy.pyw`]
+|`pika` and `tk`
+|AMQP
+|GUI
+|Consumes meter messages from AMQP and displays production and consumption data on a simple GUI.
+
 |link:../../../Python/examples/amqp_unicorn_hat_hd.py[`amqp_unicorn_hat_hd.py`]
 |`pika` and `unicornhathd`
 |AMQP
@@ -112,6 +118,24 @@ The IQ Gateway API endpoints are best documented elsewhere on https://github.com
 |None
 |Gateway
 |Console
-|Displays production data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+|Displays meter data and operation on the console/terminal then repeats the current battery charge level percentages until closed.
+
+|link:../../../Python/examples/octopus_energy_set_tariff.py[`octopus_energy_set_tariff.py`]
+|None
+|https://octopus.energy/dashboard/new/accounts/personal-details/api-access[Octopus Energy API]
+|Cloud
+|Aquires utility tariff information from Octopus Energy, converts to a Tesla Tariff and uploads it to Tesla. It also displays data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+
+|link:../../../Python/examples/tesla_generate_docs.py[`tesla_generate_docs.py`]
+|None
+|Static JSON File
+|Documentation Files
+|This is a project resource to semi-automatically generate the documentation files.
+
+|link:../../../Python/examples/tesla_jwks_convert.py[`tesla_jwks_convert.py`]
+|None
+|Cloud
+|Console
+|This is a project resource to aquire JWKS key information for validating tokens, converts to PEM and displays data on the console/terminal then exits.
 
 |===
