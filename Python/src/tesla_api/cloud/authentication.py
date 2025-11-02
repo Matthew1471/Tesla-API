@@ -64,11 +64,22 @@ class Authentication:
     TIMEOUT = 10
 
     @staticmethod
-    def authenticate():
+    def authenticate(
+            client_id='ownerapi',
+            redirect_uri='tesla://auth/callback',
+            scope='openid email offline_access phone',
+            reauth=False):
         """
         Authenticate manually with Auth server (with a web browser) using OAuth 2.0.
         This is currently using the "Authorization Code Flow with Proof Key for Code Exchange
         (PKCE)" grant.
+
+        Args:
+            client_id (str): The unique client identifier.
+            redirect_uri (str, optional): The redirect URI to send the code to.
+            scope (str, optional): The scope of the access request.
+            reauth (bool, optional): Whether to force the user to enter their credentials again 
+                                        if already logged in.
 
         Returns:
             tuple: A tuple containing the code verifier and state.
@@ -87,19 +98,19 @@ class Authentication:
         state = secrets.token_urlsafe(32)
 
         # Build the login and authorisation code request (with PKCE) payload.
+        # Excluded from this request is 'audience=', 'is_in_app=true' and 'locale=en-GB'.
         params = {
-            'audience': '',
-            'client_id': 'ownerapi',
+            'client_id': client_id,
             'code_challenge': code_challenge,
             'code_challenge_method': 'S256',
-            'is_in_app': 'true',
-            'locale': 'en-GB',
-            'prompt': 'login',
-            'redirect_uri': 'tesla://auth/callback',
+            'redirect_uri': redirect_uri,
             'response_type': 'code',
-            'scope': 'openid email offline_access phone',
+            'scope': scope,
             'state': state
         }
+
+        if reauth:
+            params['prompt'] = 'login'
 
         # Encode the parameters into a query string.
         query_string = urllib.parse.urlencode(params)
@@ -114,7 +125,7 @@ class Authentication:
         return code_verifier, state
 
     @staticmethod
-    def parse_callback(expected_state, url):
+    def parse_callback(expected_state, uri, expected_uri=None):
         """
         Parse a user provided callback URL to obtain information useful for OAuth 2.0.
         This is currently using the "Authorization Code Flow with Proof Key for Code Exchange
@@ -122,18 +133,19 @@ class Authentication:
         
         Args:
             expected_state (str): The expected Cross-Site Request Forgery (CSRF) variable.
-            url (str): The URL containing the expected querystring values.
+            uri (str): The URI (often a URL) containing the expected querystring values.
+            expected_uri (str, optional): The expected redirect_uri (to check for the wrong URI/URLs provided).
 
         Returns:
             str: A string containing the OAuth 2.0 authorisation code.
         """
 
-        # Parse the URL.
-        parsed = urllib.parse.urlparse(url)
-
-        # Check the scheme is 'tesla' and the hostname is 'auth' and the path is '/callback'.
-        if parsed.scheme != 'tesla' or parsed.hostname != 'auth' or parsed.path != '/callback':
+        # Check the URI matches the expected callback URI.
+        if expected_uri and not uri.startswith(expected_uri):
             return None
+
+        # Parse the URI.
+        parsed = urllib.parse.urlparse(uri)
 
         # Extract query parameters.
         query_params = urllib.parse.parse_qs(parsed.query)
@@ -159,7 +171,12 @@ class Authentication:
         return code
 
     @staticmethod
-    def get_token(code, code_verifier):
+    def get_token(
+            code,
+            code_verifier,
+            client_id='ownerapi',
+            domain=AUTHENTICATION_HOST,
+            redirect_uri='tesla://auth/callback'):
         """
         Perform an OAuth 2.0 authorisation code exchange for a token (with PKCE).
         This method does not require an open session on the authentication server.
@@ -167,24 +184,31 @@ class Authentication:
         Args:
             code (str): The authorisation code.
             code_verifier (str): The PKCE code verifier.
+            client_id (str, optional): The unique client identifier.
+            domain (str, optional): Specify the auth server to ask to exchange the code for a token.
+                                        Defaults to the main auth server.
+                                        For Fleet API this must be 'fleet-auth.prd.vn.cloud.tesla.com' as
+                                        these calls can come from application servers and require different 
+                                        rate limits.
+            redirect_uri (str, optional): The redirect URI to send the code to.
 
         Returns:
             dict: The JSON response containing the token information.
         """
 
         # Build the exchange authorisation code for a token (with PKCE) request payload.
+        # Scope has been excluded from this request.
         data = {
-            'redirect_uri': 'tesla://auth/callback',
-            'client_id': 'ownerapi',
+            'redirect_uri': redirect_uri,
+            'client_id': client_id,
             'code': code,
             'code_verifier': code_verifier,
             'grant_type': 'authorization_code',
-            'scope': 'openid email offline_access phone'
         }
 
         # This is used to exchange an authorisation code for a token.
         response = requests.post(
-            url=f'{Authentication.AUTHENTICATION_HOST}/oauth2/v3/token',
+            url=f'{domain}/oauth2/v3/token',
             headers=Authentication.HEADERS,
             json=data,
             timeout=Authentication.TIMEOUT
@@ -194,12 +218,17 @@ class Authentication:
         return response.json()
 
     @staticmethod
-    def refresh_token(refresh_token):
+    def refresh_token(refresh_token, domain=AUTHENTICATION_HOST):
         """
         Perform an OAuth 2.0 refresh token exchange for an access token.
 
         Args:
             refresh_token (str): The refresh_token.
+            domain (str, optional): Specify the auth server to ask to exchange the refresh token 
+                                        for an access token. Defaults to the main auth server.
+                                        For Fleet API this must be 'fleet-auth.prd.vn.cloud.tesla.com' as
+                                        these calls can come from application servers and require different 
+                                        rate limits.
 
         Returns:
             dict: The JSON response containing the token information.
@@ -208,14 +237,14 @@ class Authentication:
         # Build the exchange refresh token for an access token request payload.
         data = {
             'refresh_token': refresh_token,
-            'scope': 'openid email offline_access phone',
             'client_id': 'ownerapi',
             'grant_type': 'refresh_token'
         }
 
         # This is used to exchange refresh token for an access token.
+        # Scope has been excluded from this request.
         response = requests.post(
-            url=f'{Authentication.AUTHENTICATION_HOST}/oauth2/v3/token',
+            url=f'{domain}/oauth2/v3/token',
             headers=Authentication.HEADERS,
             json=data,
             timeout=Authentication.TIMEOUT
@@ -289,6 +318,8 @@ class Authentication:
                         'https://owner-api.teslamotors.com/',
                         'https://auth.tesla.com/oauth2/v3/userinfo'
                     ],
+                    # Owner API = https://auth.tesla.com/oauth2/v3
+                    # Fleet API = https://auth.tesla.com/oauth2/v3/nts
                     issuer='https://auth.tesla.com/oauth2/v3'
                 )
             else:
@@ -311,6 +342,8 @@ class Authentication:
                         'https://owner-api.teslamotors.com/',
                         'https://auth.tesla.com/oauth2/v3/userinfo'
                     ],
+                    # Owner API = https://auth.tesla.com/oauth2/v3
+                    # Fleet API = https://auth.tesla.com/oauth2/v3/nts
                     issuer='https://auth.tesla.com/oauth2/v3'
                 )
 
