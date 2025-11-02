@@ -35,6 +35,7 @@ $protoFiles = @(
     "tesla_api\protobuf\signatures\signature_data.proto",
     "tesla_api\protobuf\universal_message\destination.proto",
     "tesla_api\protobuf\universal_message\domain.proto",
+    "tesla_api\protobuf\universal_message\flags.proto",
     "tesla_api\protobuf\universal_message\message_fault_e.proto",
     "tesla_api\protobuf\universal_message\message_status.proto",
     "tesla_api\protobuf\universal_message\operation_status_e.proto",

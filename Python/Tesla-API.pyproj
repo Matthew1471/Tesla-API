@@ -58,6 +58,7 @@
     <Compile Include="src\tesla_api\protobuf\signatures\signature_data_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\destination_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\domain_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\flags_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\message_fault_e_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\message_status_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\operation_status_e_pb2.py" />
