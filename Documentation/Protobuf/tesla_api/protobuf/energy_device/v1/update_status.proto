@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "UpdateStatus";
+
+enum UpdateStatus { 
+  UPDATE_STATUS_INVALID     = 0;
+  UPDATE_STATUS_IDLE        = 1;
+  UPDATE_STATUS_DOWNLOADING = 2;
+  UPDATE_STATUS_DOWNLOADED  = 3;
+  UPDATE_STATUS_STAGED      = 4;
+}

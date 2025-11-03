@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "WifiNetwork";
+
+import "tesla_api/protobuf/energy_device/v1/rssi.proto";
+import "tesla_api/protobuf/energy_device/v1/wifi_network_security_type.proto";
+
+message WifiNetwork {
+  string ssid                          = 1;
+  sint32 rssiValue                     = 2;
+  Rssi rssi                            = 3;
+  WifiNetworkSecurityType securityType = 4;
+}

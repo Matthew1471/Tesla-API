@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "AccumulatedEnergy";
+
+import "google/protobuf/wrappers.proto";
+import "tesla_api/protobuf/energy_device/v1/energy_accumulation_type.proto";
+
+message AccumulatedEnergy {
+  float energy_wh                          = 1; # Energy Wh.
+  EnergyAccumulationType accumulation_type = 2;
+  google.protobuf.UInt64Value period_s     = 3;
+}

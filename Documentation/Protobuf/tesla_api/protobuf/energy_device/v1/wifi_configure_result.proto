@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "WifiConfigureResult";
+
+enum WifiConfigureResult {
+  WIFI_CONFIGURE_RESULT_INVALID                    = 0;
+  WIFI_CONFIGURE_RESULT_SUCCESS                    = 1;
+  WIFI_CONFIGURE_RESULT_FAILURE_GENERIC            = 2;
+  WIFI_CONFIGURE_RESULT_FAILED_WITH_INVALID_CONFIG = 3;
+  WIFI_CONFIGURE_RESULT_FAILED_TO_CONNECT          = 4;
+}

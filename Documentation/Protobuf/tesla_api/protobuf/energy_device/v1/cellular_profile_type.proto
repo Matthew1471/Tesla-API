@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "CellularProfileType";
+
+enum CellularProfileType {
+  CELLULAR_PROFILE_TYPE_INVALID    = 0;
+  CELLULAR_PROFILE_TYPE_TWILIO     = 1;
+  CELLULAR_PROFILE_TYPE_ATT        = 2;
+  CELLULAR_PROFILE_TYPE_KPN        = 3;
+  CELLULAR_PROFILE_TYPE_TELEFONICA = 4;
+  CELLULAR_PROFILE_TYPE_TELSTRA    = 5;
+  CELLULAR_PROFILE_TYPE_TELUS      = 6;
+  CELLULAR_PROFILE_TYPE_DOCOMO     = 7;
+  CELLULAR_PROFILE_TYPE_UNICOM     = 8;
+}
