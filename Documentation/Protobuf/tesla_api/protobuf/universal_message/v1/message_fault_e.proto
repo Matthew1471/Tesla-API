@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package UniversalMessage;
+package tesla.proto.universal_message.v1;
 
 option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
-option java_package = "com.tesla.generated.universalmessage";
+option java_package = "com.tesla.generated.universal_message.v1";
 option java_outer_classname = "MessageFaultE";
 
 enum MessageFaultE

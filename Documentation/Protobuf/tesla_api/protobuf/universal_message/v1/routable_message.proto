@@ -1,16 +1,16 @@
 syntax = "proto3";
 
-package UniversalMessage;
+package tesla.proto.universal_message.v1;
 
 option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/universalmessage";
-option java_package = "com.tesla.generated.universalmessage";
+option java_package = "com.tesla.generated.universal_message.v1";
 option java_outer_classname = "RoutableMessage";
 
 import "tesla_api/protobuf/signatures/signature_data.proto";
-import "tesla_api/protobuf/universal_message/destination.proto";
-import "tesla_api/protobuf/universal_message/flags.proto";
-import "tesla_api/protobuf/universal_message/message_status.proto";
-import "tesla_api/protobuf/universal_message/session_info_request.proto";
+import "tesla_api/protobuf/universal_message/v1/destination.proto";
+import "tesla_api/protobuf/universal_message/v1/flags.proto";
+import "tesla_api/protobuf/universal_message/v1/message_status.proto";
+import "tesla_api/protobuf/universal_message/v1/session_info_request.proto";
 
 message RoutableMessage {
   reserved 1 to 5;
