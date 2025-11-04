@@ -13,9 +13,9 @@ import "tesla_api/protobuf/energy_device/v1/firmware_version.proto";
 import "tesla_api/protobuf/energy_device/v1/system_update.proto";
 
 message CommonAPIGetSystemInfoResponse {
-  DeviceId device_id              = 1
-  Din din                         = 2
-  FirmwareVersion firmare_version = 3
-  SystemUpdate system_update      = 4
-  DeviceType device_type          = 5
+  DeviceId device_id              = 1;
+  Din din                         = 2;
+  FirmwareVersion firmare_version = 3;
+  SystemUpdate system_update      = 4;
+  DeviceType device_type          = 5;
 }

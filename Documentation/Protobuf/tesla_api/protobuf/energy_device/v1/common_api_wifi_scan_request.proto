@@ -9,7 +9,7 @@ option java_outer_classname = "CommonAPIWifiScanRequest";
 import "tesla_api/protobuf/energy_device/v1/wifi_network_security_type.proto";
 
 message CommonAPIWifiScanRequest {
-  uint32 max_scan_duration                                = 1
-  repeated WifiNetworkSecurityType desired_security_types = 2
-  uint32 maximum_total_aps                                = 3
+  uint32 max_scan_duration                                = 1;
+  repeated WifiNetworkSecurityType desired_security_types = 2;
+  uint32 maximum_total_aps                                = 3;
 }

@@ -9,5 +9,5 @@ option java_outer_classname = "CommonAPIWifiScanResponse";
 import "tesla_api/protobuf/energy_device/v1/wifi_network.proto";
 
 message CommonAPIWifiScanResponse {
-  repeated WifiNetwork wifi_networks = 2
+  repeated WifiNetwork wifi_networks = 2;
 }
