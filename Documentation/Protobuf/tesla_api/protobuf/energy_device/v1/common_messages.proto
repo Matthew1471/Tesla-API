@@ -10,6 +10,12 @@ import "tesla_api/protobuf/energy_device/v1/common_api_check_for_update_request.
 import "tesla_api/protobuf/energy_device/v1/common_api_check_for_update_response.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_clear_update_request.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_clear_update_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_factory_reset_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_factory_reset_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_cellular_info_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_cellular_info_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_networking_status_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_networking_status_response.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_get_system_info_request.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_get_system_info_response.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_perform_update_request.proto";
@@ -26,8 +32,8 @@ message CommonMessages {
     CommonAPISetLocalSiteConfigResponse set_local_site_config_response                                                     = 5;
     CommonAPIPerformUpdateRequest perform_update_request                                                                   = 6;
     CommonAPIPerformUpdateResponse perform_update_response                                                                 = 7;
-    //CommonAPIFactoryResetRequest factory_reset_request                                                                     = 8;
-    //CommonAPIFactoryResetResponse factory_reset_response                                                                   = 9;
+    CommonAPIFactoryResetRequest factory_reset_request                                                                     = 8;
+    CommonAPIFactoryResetResponse factory_reset_response                                                                   = 9;
     //CommonAPIWifiScanRequest wifi_scan_request                                                                             = 10;
     //CommonAPIWifiScanResponse wifi_scan_response                                                                           = 11;
     //CommonAPIConfigureWifiRequest configure_wifi_request                                                                   = 12;
@@ -40,10 +46,10 @@ message CommonMessages {
     //CommonAPIDeviceCertResponse device_cert_response                                                                       = 19;
     //CommonAPIConfigureWifiWithEncryptedPasswordRequest configure_wifi_with_encrypted_password_request                      = 20;
     //CommonAPIConfigureWifiWithEncryptedPasswordResponse configure_wifi_with_encrypted_password_response                    = 21;
-    //CommonAPIGetNetworkingStatusRequest get_networking_status_request                                                      = 22;
-    //CommonAPIGetNetworkingStatusResponse get_networking_status_response                                                    = 23;
-    //CommonAPIGetCellularInfoRequest get_cellular_info_request                                                              = 24;
-    //CommonAPIGetCellularInfoRequest get_cellular_info_response                                                             = 25;
+    CommonAPIGetNetworkingStatusRequest get_networking_status_request                                                      = 22;
+    CommonAPIGetNetworkingStatusResponse get_networking_status_response                                                    = 23;
+    CommonAPIGetCellularInfoRequest get_cellular_info_request                                                              = 24;
+    CommonAPIGetCellularInfoRequest get_cellular_info_response                                                             = 25;
     //CommonAPIConfigureEthernetRequest configure_ethernet_request                                                           = 26;
     //CommonAPIConfigureEthernetResponse configure_ethernet_response                                                         = 27;
     //CommonAPIForgetWifiNetworkRequest forget_wifi_network_request                                                          = 28;
