@@ -7,7 +7,7 @@ option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "SystemUpdate";
 
 import "tesla_api/protobuf/energy_device/v1/firmware_version.proto";
-import "tesla_api/protobuf/energy_device/v1/server_staged_packages.proto";
+import "tesla_api/protobuf/energy_device/v1/server_staged_package.proto";
 
 message SystemUpdate {
   int32 handshake_result                               = 1;

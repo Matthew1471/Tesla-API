@@ -6,25 +6,36 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "CommonMessages";
 
+import "tesla_api/protobuf/energy_device/v1/common_api_check_for_update_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_check_for_update_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_clear_update_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_clear_update_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_system_info_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_get_system_info_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_perform_update_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_perform_update_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_response.proto";
+
 message CommonMessages {
   int32 error_response                                                                                                     = 1;
-  //oneof message {
-    //CommonAPIGetSystemInfoRequest get_system_info_request                                                                  = 2;
-    //CommonAPIGetSystemInfoResponse get_system_info_response                                                                = 3;
-    //CommonAPISetLocalSiteConfigRequest set_local_site_config_request                                                       = 4;
-    //CommonAPISetLocalSiteConfigResponse set_local_site_config_response                                                     = 5;
-    //CommonAPIPerformUpdateRequest perform_update_request                                                                   = 6;
-    //CommonAPIPerformUpdateResponse perform_update_response                                                                 = 7;
+  oneof message {
+    CommonAPIGetSystemInfoRequest get_system_info_request                                                                  = 2;
+    CommonAPIGetSystemInfoResponse get_system_info_response                                                                = 3;
+    CommonAPISetLocalSiteConfigRequest set_local_site_config_request                                                       = 4;
+    CommonAPISetLocalSiteConfigResponse set_local_site_config_response                                                     = 5;
+    CommonAPIPerformUpdateRequest perform_update_request                                                                   = 6;
+    CommonAPIPerformUpdateResponse perform_update_response                                                                 = 7;
     //CommonAPIFactoryResetRequest factory_reset_request                                                                     = 8;
     //CommonAPIFactoryResetResponse factory_reset_response                                                                   = 9;
     //CommonAPIWifiScanRequest wifi_scan_request                                                                             = 10;
     //CommonAPIWifiScanResponse wifi_scan_response                                                                           = 11;
     //CommonAPIConfigureWifiRequest configure_wifi_request                                                                   = 12;
     //CommonAPIConfigureWifiResponse configure_wifi_response                                                                 = 13;
-    //CommonAPICheckForUpdateRequest check_for_update_request                                                                = 14;
-    //CommonAPICheckForUpdateResponse check_for_update_response                                                              = 15;
-    //CommonAPIClearUpdateRequest clear_update_request                                                                       = 16;
-    //CommonAPIClearUpdateResponse clear_update_response                                                                     = 17;
+    CommonAPICheckForUpdateRequest check_for_update_request                                                                = 14;
+    CommonAPICheckForUpdateResponse check_for_update_response                                                              = 15;
+    CommonAPIClearUpdateRequest clear_update_request                                                                       = 16;
+    CommonAPIClearUpdateResponse clear_update_response                                                                     = 17;
     //CommonAPIDeviceCertRequest device_cert_request                                                                         = 18;
     //CommonAPIDeviceCertResponse device_cert_response                                                                       = 19;
     //CommonAPIConfigureWifiWithEncryptedPasswordRequest configure_wifi_with_encrypted_password_request                      = 20;
@@ -53,5 +64,5 @@ message CommonMessages {
     //CommonAPIRetrieveSiteUuidResponse retrieve_site_uuid_response                                                          = 43;
     //CommonAPIRetrieveSiteSuggestionRequest retrieve_site_suggestion_request                                                = 44;
     //CommonAPIRetrieveSiteSuggestionResponse retrieve_site_suggestion_response                                              = 45;
-  //}
+  }
 }
