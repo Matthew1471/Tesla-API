@@ -22,6 +22,8 @@ import "tesla_api/protobuf/energy_device/v1/common_api_perform_update_request.pr
 import "tesla_api/protobuf/energy_device/v1/common_api_perform_update_response.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_request.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_response.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_wifi_scan_request.proto";
+import "tesla_api/protobuf/energy_device/v1/common_api_wifi_scan_response.proto";
 
 message CommonMessages {
   int32 error_response                                                                                                     = 1;
@@ -34,8 +36,8 @@ message CommonMessages {
     CommonAPIPerformUpdateResponse perform_update_response                                                                 = 7;
     CommonAPIFactoryResetRequest factory_reset_request                                                                     = 8;
     CommonAPIFactoryResetResponse factory_reset_response                                                                   = 9;
-    //CommonAPIWifiScanRequest wifi_scan_request                                                                             = 10;
-    //CommonAPIWifiScanResponse wifi_scan_response                                                                           = 11;
+    CommonAPIWifiScanRequest wifi_scan_request                                                                             = 10;
+    CommonAPIWifiScanResponse wifi_scan_response                                                                           = 11;
     //CommonAPIConfigureWifiRequest configure_wifi_request                                                                   = 12;
     //CommonAPIConfigureWifiResponse configure_wifi_response                                                                 = 13;
     CommonAPICheckForUpdateRequest check_for_update_request                                                                = 14;

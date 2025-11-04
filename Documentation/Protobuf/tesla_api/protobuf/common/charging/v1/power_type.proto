@@ -6,7 +6,7 @@ option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobu
 option java_package = "com.tesla.generated.common.charging";
 option java_outer_classname = "PowerType";
 
-enum powerType {
+enum PowerType {
   POWER_TYPE_INVALID    = 0;
   POWER_TYPE_AC_1_PHASE = 1;
   POWER_TYPE_AC_3_PHASE = 2;
