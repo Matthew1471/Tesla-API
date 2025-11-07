@@ -22,12 +22,13 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from tesla_api.protobuf.energy_device.v1 import common_messages_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_common__messages__pb2
 from tesla_api.protobuf.energy_device.v1 import delivery_channel_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_delivery__channel__pb2
 from tesla_api.protobuf.energy_device.v1 import participant_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_participant__pb2
 from tesla_api.protobuf.energy_device.v1 import teg_messages_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_teg__messages__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n:tesla_api/protobuf/energy_device/v1/message_envelope.proto\x12\x1ctesla.proto.energy_device.v1\x1a:tesla_api/protobuf/energy_device/v1/delivery_channel.proto\x1a\x35tesla_api/protobuf/energy_device/v1/participant.proto\x1a\x36tesla_api/protobuf/energy_device/v1/teg_messages.proto\"\x9e\x02\n\x0fMessageEnvelope\x12G\n\x10\x64\x65livery_channel\x18\x01 \x01(\x0e\x32-.tesla.proto.energy_device.v1.DeliveryChannel\x12\x39\n\x06sender\x18\x02 \x01(\x0b\x32).tesla.proto.energy_device.v1.Participant\x12<\n\trecipient\x18\x03 \x01(\x0b\x32).tesla.proto.energy_device.v1.Participant\x12\x38\n\x03teg\x18\x05 \x01(\x0b\x32).tesla.proto.energy_device.v1.TEGMessagesH\x00\x42\t\n\x07payloadJ\x04\x08\x07\x10\x08\x42\x83\x01\n$com.tesla.generated.energy_device.v1B\x0fMessageEnvelopeZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n:tesla_api/protobuf/energy_device/v1/message_envelope.proto\x12\x1ctesla.proto.energy_device.v1\x1a\x39tesla_api/protobuf/energy_device/v1/common_messages.proto\x1a:tesla_api/protobuf/energy_device/v1/delivery_channel.proto\x1a\x35tesla_api/protobuf/energy_device/v1/participant.proto\x1a\x36tesla_api/protobuf/energy_device/v1/teg_messages.proto\"\xde\x02\n\x0fMessageEnvelope\x12G\n\x10\x64\x65livery_channel\x18\x01 \x01(\x0e\x32-.tesla.proto.energy_device.v1.DeliveryChannel\x12\x39\n\x06sender\x18\x02 \x01(\x0b\x32).tesla.proto.energy_device.v1.Participant\x12<\n\trecipient\x18\x03 \x01(\x0b\x32).tesla.proto.energy_device.v1.Participant\x12>\n\x06\x63ommon\x18\x04 \x01(\x0b\x32,.tesla.proto.energy_device.v1.CommonMessagesH\x00\x12\x38\n\x03teg\x18\x05 \x01(\x0b\x32).tesla.proto.energy_device.v1.TEGMessagesH\x00\x42\t\n\x07payloadJ\x04\x08\x07\x10\x08\x42\x83\x01\n$com.tesla.generated.energy_device.v1B\x0fMessageEnvelopeZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,6 +36,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'tesla_api.protobuf.energy_d
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n$com.tesla.generated.energy_device.v1B\017MessageEnvelopeZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1'
-  _globals['_MESSAGEENVELOPE']._serialized_start=264
-  _globals['_MESSAGEENVELOPE']._serialized_end=550
+  _globals['_MESSAGEENVELOPE']._serialized_start=323
+  _globals['_MESSAGEENVELOPE']._serialized_end=673
 # @@protoc_insertion_point(module_scope)

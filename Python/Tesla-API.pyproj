@@ -64,6 +64,14 @@
     <Compile Include="src\tesla_api\protobuf\universal_message\operation_status_e_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\routable_message_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\session_info_request_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\destination_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\domain_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\flags_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\message_fault_e_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\message_status_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\operation_status_e_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\routable_message_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\universal_message\v1\session_info_request_pb2.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="examples\" />

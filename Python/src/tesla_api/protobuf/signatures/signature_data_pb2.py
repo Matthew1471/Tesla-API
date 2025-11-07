@@ -27,9 +27,10 @@ from tesla_api.protobuf.signatures import aes_gcm_response_signature_data_pb2 as
 from tesla_api.protobuf.signatures import hmac_personalized_signature_data_pb2 as tesla__api_dot_protobuf_dot_signatures_dot_hmac__personalized__signature__data__pb2
 from tesla_api.protobuf.signatures import hmac_signature_data_pb2 as tesla__api_dot_protobuf_dot_signatures_dot_hmac__signature__data__pb2
 from tesla_api.protobuf.signatures import key_identity_pb2 as tesla__api_dot_protobuf_dot_signatures_dot_key__identity__pb2
+from tesla_api.protobuf.signatures import rsa_signature_data_pb2 as tesla__api_dot_protobuf_dot_signatures_dot_rsa__signature__data__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2tesla_api/protobuf/signatures/signature_data.proto\x12\nSignatures\x1aGtesla_api/protobuf/signatures/aes_gcm_personalized_signature_data.proto\x1a\x43tesla_api/protobuf/signatures/aes_gcm_response_signature_data.proto\x1a\x44tesla_api/protobuf/signatures/hmac_personalized_signature_data.proto\x1a\x37tesla_api/protobuf/signatures/hmac_signature_data.proto\x1a\x30tesla_api/protobuf/signatures/key_identity.proto\"\xf7\x02\n\rSignatureData\x12\x30\n\x0fsigner_identity\x18\x01 \x01(\x0b\x32\x17.Signatures.KeyIdentity\x12P\n\x19\x61\x65s_gcm_personalized_data\x18\x05 \x01(\x0b\x32+.Signatures.AesGcmPersonalizedSignatureDataH\x00\x12\x39\n\x10session_info_tag\x18\x06 \x01(\x0b\x32\x1d.Signatures.HmacSignatureDataH\x00\x12K\n\x16hmac_personalized_data\x18\x08 \x01(\x0b\x32).Signatures.HmacPersonalizedSignatureDataH\x00\x12H\n\x15\x61\x65s_gcm_response_data\x18\t \x01(\x0b\x32\'.Signatures.AesGcmResponseSignatureDataH\x00\x42\n\n\x08sig_typeJ\x04\x08\x07\x10\x08\x42x\n\x1e\x63om.tesla.generated.signaturesB\rSignatureDataZGgithub.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signaturesb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n2tesla_api/protobuf/signatures/signature_data.proto\x12\nSignatures\x1aGtesla_api/protobuf/signatures/aes_gcm_personalized_signature_data.proto\x1a\x43tesla_api/protobuf/signatures/aes_gcm_response_signature_data.proto\x1a\x44tesla_api/protobuf/signatures/hmac_personalized_signature_data.proto\x1a\x37tesla_api/protobuf/signatures/hmac_signature_data.proto\x1a\x30tesla_api/protobuf/signatures/key_identity.proto\x1a\x36tesla_api/protobuf/signatures/rsa_signature_data.proto\"\xa3\x03\n\rSignatureData\x12\x30\n\x0fsigner_identity\x18\x01 \x01(\x0b\x32\x17.Signatures.KeyIdentity\x12P\n\x19\x61\x65s_gcm_personalized_data\x18\x05 \x01(\x0b\x32+.Signatures.AesGcmPersonalizedSignatureDataH\x00\x12\x39\n\x10session_info_tag\x18\x06 \x01(\x0b\x32\x1d.Signatures.HmacSignatureDataH\x00\x12\x30\n\x08rsa_data\x18\x07 \x01(\x0b\x32\x1c.Signatures.RsaSignatureDataH\x00\x12K\n\x16hmac_personalized_data\x18\x08 \x01(\x0b\x32).Signatures.HmacPersonalizedSignatureDataH\x00\x12H\n\x15\x61\x65s_gcm_response_data\x18\t \x01(\x0b\x32\'.Signatures.AesGcmResponseSignatureDataH\x00\x42\n\n\x08sig_typeBx\n\x1e\x63om.tesla.generated.signaturesB\rSignatureDataZGgithub.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signaturesb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,6 +38,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'tesla_api.protobuf.signatur
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\036com.tesla.generated.signaturesB\rSignatureDataZGgithub.com/teslamotors/vehicle_command/pkg/protocol/protobuf/signatures'
-  _globals['_SIGNATUREDATA']._serialized_start=386
-  _globals['_SIGNATUREDATA']._serialized_end=761
+  _globals['_SIGNATUREDATA']._serialized_start=442
+  _globals['_SIGNATUREDATA']._serialized_end=861
 # @@protoc_insertion_point(module_scope)
