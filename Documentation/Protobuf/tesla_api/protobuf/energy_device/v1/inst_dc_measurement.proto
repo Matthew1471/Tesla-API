@@ -6,7 +6,7 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "InstDCMeasurement";
 
-import "google/protobuf/wrappers.proto"
+import "google/protobuf/wrappers.proto";
 
 message InstDCMeasurement {
   float voltage_v                      = 1; // Voltage (V)

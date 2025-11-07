@@ -71,7 +71,7 @@ message CommonMessages {
     CommonAPIGetNetworkingStatusRequest get_networking_status_request                                                      = 22;
     CommonAPIGetNetworkingStatusResponse get_networking_status_response                                                    = 23;
     CommonAPIGetCellularInfoRequest get_cellular_info_request                                                              = 24;
-    CommonAPIGetCellularInfoRequest get_cellular_info_response                                                             = 25;
+    CommonAPIGetCellularInfoResponse get_cellular_info_response                                                            = 25;
     CommonAPIConfigureEthernetRequest configure_ethernet_request                                                           = 26;
     CommonAPIConfigureEthernetResponse configure_ethernet_response                                                         = 27;
     CommonAPIForgetWifiNetworkRequest forget_wifi_network_request                                                          = 28;
