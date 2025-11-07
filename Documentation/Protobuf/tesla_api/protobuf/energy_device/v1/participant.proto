@@ -12,7 +12,7 @@ import "tesla_api/protobuf/energy_device/v1/tesla_service.proto";
 
 message Participant {
   oneof id {
-    string din                         = 1;
+    string din                         = 1; // Device Identification Number (DIN)
     TeslaService tesla_service         = 2;
     LocalParticipant local             = 3;
     AuthorizedClient authorized_client = 4;

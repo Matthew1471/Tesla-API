@@ -18,5 +18,5 @@ message SystemUpdate {
   uint64 estimated_bytes_per_second                    = 6;
   uint64 last_handshake_timestamp                      = 7;
   int32 last_update_result                             = 8;
-  repeated ServerStagedPackages server_staged_packages = 9; 
+  repeated ServerStagedPackage server_staged_packages = 9; 
 }

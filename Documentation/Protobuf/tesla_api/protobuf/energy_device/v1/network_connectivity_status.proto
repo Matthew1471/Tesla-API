@@ -6,7 +6,7 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "NetworkConnectivityStatus";
 
-import "google/protobuf/wrappers.proto"
+import "google/protobuf/wrappers.proto";
 import "tesla_api/protobuf/energy_device/v1/rssi.proto";
 
 message NetworkConnectivityStatus {

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy-device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "WCChargeScheduleError";
+
+enum WCChargeScheduleError { 
+  WC_CHARGE_SCHEDULE_ERROR_INVALID                           = 0;
+  WC_CHARGE_SCHEDULE_ERROR_NONE                              = 1;
+  WC_CHARGE_SCHEDULE_ERROR_NO_INTERNET                       = 2;
+  WC_CHARGE_SCHEDULE_ERROR_NON_VOLATILE_DATA_READ_WRITE_FAIL = 3;
+  WC_CHARGE_SCHEDULE_ERROR_INTERNAL                          = 4;
+}

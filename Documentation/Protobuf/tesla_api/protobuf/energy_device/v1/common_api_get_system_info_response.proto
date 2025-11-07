@@ -6,14 +6,14 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "CommonAPIGetSystemInfoResponse";
 
-import "tesla_api/protobuf/energy_device/v1/device_id.proto";
 import "tesla_api/protobuf/energy_device/v1/device_type.proto";
 import "tesla_api/protobuf/energy_device/v1/din.proto";
+import "tesla_api/protobuf/energy_device/v1/ecu_id.proto";
 import "tesla_api/protobuf/energy_device/v1/firmware_version.proto";
 import "tesla_api/protobuf/energy_device/v1/system_update.proto";
 
 message CommonAPIGetSystemInfoResponse {
-  DeviceId device_id              = 1;
+  EcuId device_id                 = 1;
   Din din                         = 2;
   FirmwareVersion firmare_version = 3;
   SystemUpdate system_update      = 4;

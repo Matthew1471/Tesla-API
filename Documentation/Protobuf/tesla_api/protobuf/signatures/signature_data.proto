@@ -11,18 +11,17 @@ import "tesla_api/protobuf/signatures/aes_gcm_response_signature_data.proto";
 import "tesla_api/protobuf/signatures/hmac_personalized_signature_data.proto";
 import "tesla_api/protobuf/signatures/hmac_signature_data.proto";
 import "tesla_api/protobuf/signatures/key_identity.proto";
+import "tesla_api/protobuf/signatures/rsa_signature_data.proto";
 
 message SignatureData {
   KeyIdentity signer_identity                                 = 1;
-
-  // RSA_DATA = 7;
-  reserved 7;
 
   oneof sig_type {
     // SIG_TYPE_NOT_SET = 0;
     // PRESENT_KEY_DATA = 2;
     AesGcmPersonalizedSignatureData aes_gcm_personalized_data = 5;
     HmacSignatureData session_info_tag                        = 6;
+    RsaSignatureData rsa_data                                 = 7;
     HmacPersonalizedSignatureData hmac_personalized_data      = 8;
     AesGcmResponseSignatureData aes_gcm_response_data         = 9;
   }

@@ -6,10 +6,9 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "CommonAPIGetCellularInfoResponse";
 
-import "tesla_api/protobuf/energy_device/v1/eid.proto";
-import "tesla_api/protobuf/energy_device/v1/supported_profiles.proto";
+import "tesla_api/protobuf/energy_device/v1/cellular_eid.proto";
 
 message CommonAPIGetCellularInfoResponse {
-  Eid eid                                       = 1;
-  repeated SupportedProfiles supported_profiles = 2;
+  CellularEID eid                   = 1;
+  repeated int32 supported_profiles = 2;
 }
