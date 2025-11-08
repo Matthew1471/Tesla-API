@@ -92,13 +92,14 @@ class Gateway:
         # Check the response is positive.
         return response.status_code == 200
 
-    def api_call(self, path, method='GET', json=None):
+    def api_call(self, path, method='GET', data=None, json=None):
         """
         Make an API call to the Gateway.
 
         Args:
             path (str): The API endpoint path.
             method (str, optional): The HTTP method for the request. Defaults to 'GET'.
+            data (byte, optional): Binary data for the request body. Defaults to None.
             json (dict, optional): JSON data for the request body. Defaults to None.
 
         Returns:
@@ -110,6 +111,7 @@ class Gateway:
             method=method,
             url=f'{self.host}{path}',
             headers=Gateway.HEADERS,
+            data=data,
             json=json,
             timeout=Gateway.TIMEOUT
         )
@@ -117,6 +119,10 @@ class Gateway:
         # Has the session expired?
         if response.status_code == 401:
             raise ValueError(response.reason)
+
+        # TED-API requests have protobuf responses.
+        if data and len(response.content) > 0:
+            return response.content
 
         # Return the JSON response.
         return response.json() if len(response.content) > 0 else None
