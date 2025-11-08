@@ -237,14 +237,15 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
     # Return the routable message.
     return routable_message
 
-def parse_message(gateway_din, message):
+def parse_message(message, gateway_din=None, verify=True):
     # Step 1: Parse the top-level RoutableMessage message.
     routable_message = routable_message_pb2.RoutableMessage()
     routable_message.ParseFromString(message)
     print(f'Routable Message:\n\n{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n')
 
     # Step 2: Verify the signature.
-    verify_signature(gateway_din, routable_message)
+    if verify:
+        verify_signature(gateway_din, routable_message)
 
     # Step 3: Extract and parse the nested MessageEnvelope message.
     message_envelope = message_envelope_pb2.MessageEnvelope()
@@ -257,8 +258,7 @@ def send_command(protobuf_bytes, host = None):
     response = gateway.api_call('/tedapi/v1r', 'POST', data=protobuf_bytes)
 
     # Decode response.
-    print(f'Response:\n\n{base64.b64encode(response)}\n')
-    parse_message(response)
+    parse_message(response, verify=False)
 
 # Launch the test method if invoked directly.
 if __name__ == '__main__':
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     protobuf_bytes = generate_sample_message(private_key, public_key_bytes, gateway_din).SerializeToString()
 
     # Re-parse the sample message.
-    parse_message(gateway_din, protobuf_bytes)
+    parse_message(protobuf_bytes, gateway_din)
 
     # Demonstrate sending a request
     # (but only if using real data, fake data will not work).
