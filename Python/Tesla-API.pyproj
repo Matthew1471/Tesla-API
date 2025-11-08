@@ -26,6 +26,7 @@
     <Compile Include="examples\gateway_console.py" />
     <Compile Include="examples\jwks_convert.py" />
     <Compile Include="examples\octopus_energy_set_tariff.py" />
+    <Compile Include="examples\protobuf_demo.py" />
     <Compile Include="examples\tesla_generate_docs.py" />
     <Compile Include="examples\tesla_jwks_convert.py" />
     <Compile Include="src\tesla_api\cloud\__init__.py" />
@@ -39,6 +40,7 @@
     <Compile Include="src\tesla_api\octopus_energy\api.py" />
     <Compile Include="src\tesla_api\protobuf\__init__.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\authorized_client_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\common_messages_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\control_event_scheduling_info_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\delivery_channel_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\local_participant_pb2.py" />
@@ -56,14 +58,6 @@
     <Compile Include="src\tesla_api\protobuf\signatures\hmac_signature_data_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\signatures\key_identity_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\signatures\signature_data_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\destination_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\domain_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\flags_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\message_fault_e_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\message_status_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\operation_status_e_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\routable_message_pb2.py" />
-    <Compile Include="src\tesla_api\protobuf\universal_message\session_info_request_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\v1\destination_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\v1\domain_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\universal_message\v1\flags_pb2.py" />
@@ -85,6 +79,7 @@
     <Folder Include="src\tesla_api\protobuf\energy_device\v1\" />
     <Folder Include="src\tesla_api\protobuf\signatures\" />
     <Folder Include="src\tesla_api\protobuf\universal_message\" />
+    <Folder Include="src\tesla_api\protobuf\universal_message\v1\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
