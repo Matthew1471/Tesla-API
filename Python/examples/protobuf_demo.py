@@ -95,18 +95,21 @@ def to_tlv(tag: int, value_bytes: bytes) -> list[bytes]:
     # Return a list of the three components.
     return [tag_bytes, length_bytes, value_bytes]
 
-def sign_message(private_key, din, routable_message):
-
-    expires_at = to_expires_at()
-
-    # Calculate the payload to sign.
-    tlv_encoded_message = b''.join([
+def build_tlv_payload(din: str, expires_at: int, protobuf_bytes: bytes) -> bytes:
+    return b''.join([
         *to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
         *to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
         *to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
         *to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
-        *to_tlv(tag_pb2.TAG_END, routable_message.protobuf_message_as_bytes)
+        *to_tlv(tag_pb2.TAG_END, protobuf_bytes)
     ])
+
+def sign_message(private_key, din, routable_message):
+    # Generate a signature expiration time.
+    expires_at = to_expires_at()
+
+    # Build the TLV payload to sign.
+    tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
 
     # Sign and add the signature.
     routable_message.signature_data.CopyFrom(
@@ -129,16 +132,14 @@ def sign_message(private_key, din, routable_message):
     )
 
 def verify_signature(din, routable_message):
+    # Load the public key from the signed message.
     public_key = serialization.load_der_public_key(routable_message.signature_data.signer_identity.public_key)
 
-    # Calculate the payload to verify.
-    tlv_encoded_message = b''.join([
-        *to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
-        *to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
-        *to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
-        *to_tlv(tag_pb2.TAG_EXPIRES_AT, routable_message.signature_data.rsa_data.expires_at.to_bytes(4)),
-        *to_tlv(tag_pb2.TAG_END, routable_message.protobuf_message_as_bytes)
-    ])
+    # Obtain the signature expiration time.
+    expires_at = routable_message.signature_data.rsa_data.expires_at
+
+    # Build the TLV payload to verify.
+    tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
 
     # Verify the signature.
     public_key.verify(
@@ -271,7 +272,7 @@ if __name__ == '__main__':
 
     # Wheter to use real identifiable data from the configuration file
     # (be careful if posting this online).
-    USE_FAKE_DATA = False
+    USE_FAKE_DATA = True
 
     # Whether to demonstrate sending data.
     SEND_DEMO = False
@@ -302,7 +303,7 @@ if __name__ == '__main__':
         # Device Identification Number (DIN) 
         gateway_din = tesla_configuration.get('gateway_din')
 
-        # Get the public key of the paired 'phone'.
+        # Get the private and public key of the paired 'phone'.
         paired_device = tesla_configuration.get('paired_device', {})
         private_key_bytes = base64.b64decode(paired_device.get('private_key'))
         private_key = serialization.load_der_private_key(private_key_bytes, password=None)
@@ -320,7 +321,7 @@ if __name__ == '__main__':
         # Create another sample message.
         protobuf_bytes = generate_sample_message2(private_key, public_key_bytes, gateway_din).SerializeToString()
 
-        # Convert example to bytes.
+        # Send example to local Gateway.
         send_command(
             protobuf_bytes=protobuf_bytes,
             host=configuration.get('gateway', {}).get('host', None)
