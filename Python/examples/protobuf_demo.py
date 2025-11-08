@@ -111,7 +111,7 @@ def sign_message(private_key, din, routable_message):
     # Build the TLV payload to sign.
     tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
 
-    # Sign and add the signature.
+    # Sign message and add the signature.
     routable_message.signature_data.CopyFrom(
         signature_data_pb2.SignatureData(
             signer_identity=key_identity_pb2.KeyIdentity(
@@ -197,15 +197,15 @@ def generate_sample_message(private_key, public_key_bytes, gateway_din):
     return routable_message
 
 def generate_sample_message2(private_key, public_key_bytes, gateway_din):
-    # Build a Common API get networking status request.
+    # Build a Common API Get Networking Status Request.
     get_networking_status_request = common_api_get_networking_status_request_pb2.CommonAPIGetNetworkingStatusRequest()
 
-    # Build a Common message containing the get_networking_status_request.
+    # Build a CommonMessage containing the CommonAPIGetNetworkingStatusRequest.
     common_message = common_messages_pb2.CommonMessages(
         get_networking_status_request=get_networking_status_request
     )
 
-    # Build the message envelope containing the common_message.
+    # Build the MessageEnvelope containing the CommonMessage.
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
@@ -217,7 +217,7 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
         common=common_message
     )
 
-    # Build the routable message containing the message envelope.
+    # Build the RoutableMessage containing the MessageEnvelope.
     routable_message = routable_message_pb2.RoutableMessage(
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
@@ -238,7 +238,7 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
     return routable_message
 
 def parse_message(gateway_din, message):
-    # Step 1: Parse the top-level 'routable_message' message.
+    # Step 1: Parse the top-level RoutableMessage message.
     routable_message = routable_message_pb2.RoutableMessage()
     routable_message.ParseFromString(message)
     print(f'Routable Message:\n\n{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n')
@@ -266,9 +266,6 @@ if __name__ == '__main__':
     # Load configuration.
     with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
-
-    # Get a reference to the tesla part of the configuration.
-    tesla_configuration = configuration.get('tesla', {})
 
     # Wheter to use real identifiable data from the configuration file
     # (be careful if posting this online).
@@ -300,7 +297,10 @@ if __name__ == '__main__':
         )
         print(f'Fake Public Key:\n{base64.b64encode(public_key_bytes)}\n')
     else:
-        # Device Identification Number (DIN) 
+        # Get a reference to the tesla part of the configuration.
+        tesla_configuration = configuration.get('tesla', {})
+
+        # Get the Gateway's Device Identification Number (DIN) 
         gateway_din = tesla_configuration.get('gateway_din')
 
         # Get the private and public key of the paired 'phone'.
@@ -321,7 +321,7 @@ if __name__ == '__main__':
         # Create another sample message.
         protobuf_bytes = generate_sample_message2(private_key, public_key_bytes, gateway_din).SerializeToString()
 
-        # Send example to local Gateway.
+        # Send this example to the local Gateway.
         send_command(
             protobuf_bytes=protobuf_bytes,
             host=configuration.get('gateway', {}).get('host', None)
