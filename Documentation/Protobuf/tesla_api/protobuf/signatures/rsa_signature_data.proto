@@ -7,6 +7,6 @@ option java_package = "com.tesla.generated.signatures";
 option java_outer_classname = "RsaSignatureData";
 
 message RsaSignatureData {
-  fixed32  epoch = 1;
-  bytes   tag   = 2;
+  fixed32 expires_at = 1;
+  bytes signature    = 2;
 }
