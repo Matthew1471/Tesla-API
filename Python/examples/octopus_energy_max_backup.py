@@ -18,13 +18,13 @@
 
 """
 This example provides functionality to interact with the Octopus Energy® API for monitoring
-Intelligent Octopus Go dynamic planned dispatch times and then applying them to the Tesla®
+Intelligent Octopus Go dynamic Flex planned dispatch times and then applying them to the Tesla®
 Powerwall®.
 
 The functions in this module allow you to:
 - Establish an Octopus Energy® API session.
-- Fetch dynamic planned dispatch times.
-- Start Max Backup on the Tesla® Powerwall® if during a session.
+- Fetch dynamic Flex planned dispatch times.
+- Start Max Backup on the Tesla® Powerwall® if during a session and stop if a session changes.
 """
 
 # Used to convert the data to Base64.
@@ -586,7 +586,7 @@ def parse_message(message):
     routable_message.ParseFromString(message)
     print(f'Routable Message:\n\n{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n')
 
-    # Step 3: Extract and parse the nested MessageEnvelope message.
+    # Step 2: Extract and parse the nested MessageEnvelope message.
     message_envelope = message_envelope_pb2.MessageEnvelope()
     message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
     print(f'Message Envelope:\n\n{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n')
@@ -640,7 +640,7 @@ def send_routable_message(configuration, gateway_din, routable_message):
                     'routable_message': base64.b64encode(routable_message.SerializeToString()).decode("ascii"),
                     'identifier_type': 1,
                     'target_id': gateway_din
-                    }
+                }
             }
         )
 
