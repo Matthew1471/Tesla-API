@@ -486,16 +486,11 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Return the discovered energy_site_id.
     return energy_site_id
 
-def get_routable_message(domain, protobuf_message_as_bytes, public_key):
+def get_routable_message(domain, protobuf_message_as_bytes):
     # Build the routable message containing the message envelope.
     return routable_message_pb2.RoutableMessage(
         to_destination=destination_pb2.Destination(
             domain=domain
-        ),
-        signature_data=signature_data_pb2.SignatureData(
-            signer_identity=key_identity_pb2.KeyIdentity(
-                public_key=public_key
-            )
         ),
         protobuf_message_as_bytes=protobuf_message_as_bytes,
         uuid=str(uuid.uuid4()).encode()
@@ -553,7 +548,7 @@ def build_tlv_payload(din: str, expires_at: int, protobuf_bytes: bytes) -> bytes
         *to_tlv(tag_pb2.TAG_END, protobuf_bytes)
     ])
 
-def sign_message(private_key, din, routable_message):
+def sign_message(private_key, public_key_bytes, din, routable_message):
     # Generate a signature expiration time.
     expires_at = to_expires_at()
 
@@ -564,10 +559,7 @@ def sign_message(private_key, din, routable_message):
     routable_message.signature_data.CopyFrom(
         signature_data_pb2.SignatureData(
             signer_identity=key_identity_pb2.KeyIdentity(
-                public_key=private_key.public_key().public_bytes(
-                    encoding=serialization.Encoding.DER,
-                    format=serialization.PublicFormat.PKCS1
-                )
+                public_key=public_key_bytes
             ),
             rsa_data=rsa_signature_data_pb2.RsaSignatureData(
                 expires_at=expires_at,
@@ -679,10 +671,7 @@ def main():
         raise ValueError('No paired_device in the configuration file. Please pair this device first.')
     private_key_bytes = base64.b64decode(paired_device.get('private_key'))
     private_key = serialization.load_der_private_key(private_key_bytes, password=None)
-    public_key = base64.b64decode(paired_device.get('public_key'))
-
-    # Get a reference to the 'octopus_energy' section of the configuration.
-    octopus_energy_configuration = configuration.get('octopus_energy')
+    public_key_bytes = base64.b64decode(paired_device.get('public_key'))
 
     # Get an authenticated instance of the Octopus Energy® API.
     octopus_energy = get_octopus_energy_api_session(configuration)
@@ -747,10 +736,10 @@ def main():
         protobuf_message_as_bytes = message_envelope.SerializeToString()
 
         # Get the routable message.
-        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes, public_key)
+        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes)
 
         # Sign the routable message.
-        sign_message(private_key, gateway_din, routable_message)
+        sign_message(private_key, public_key_bytes, gateway_din, routable_message)
 
         # Print to console the routable message.
         parse_message(routable_message.SerializeToString())
@@ -780,10 +769,10 @@ def main():
         protobuf_message_as_bytes = message_envelope.SerializeToString()
 
         # Get the routable message.
-        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes, public_key)
+        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes)
 
         # Sign the routable message.
-        sign_message(private_key, gateway_din, routable_message)
+        sign_message(private_key, public_key_bytes, gateway_din, routable_message)
 
         # Print to console the routable message.
         parse_message(routable_message.SerializeToString())
