@@ -465,7 +465,7 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     print('Found Energy Site ID(s): ', end='')
     print(*energy_site_ids, sep=', ')
 
-    # It is undesirable to change TOU settings on an arbitrary site.
+    # It is undesirable to change Max Backup settings on an arbitrary site.
     if len(energy_site_ids) != 1:
         raise ValueError(
             f'You have {len(energy_site_ids)} energy products under this account. '
@@ -615,6 +615,7 @@ def send_routable_message(configuration, gateway_din, routable_message):
         response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
         # Print out the server's response.
+        print(f'Response: {base64.b64encode(response).decode()}\n')
         parse_message(response)
     elif SEND_VIA == 'OwnerAPI':
         # Get an authenticated instance of the Tesla® Owner API.
