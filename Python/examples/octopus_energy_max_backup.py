@@ -208,40 +208,108 @@ def get_octopus_energy_api_session(configuration):
     # Return the initialised octopus object.
     return octopus_energy
 
-def query_octopus_energy_graphql(octopus_energy, account_number):
+def query_octopus_energy_graphql(octopus_energy, device_id):
     """
-    Queries the Octopus Energy® API for the planned dispatch data.
+    Queries the Octopus Energy® API for the Flex planned dispatch data.
 
     Args:
-        account_number (str): The Octopus Energy® account number to query.
+        device_id (str): The Octopus Energy® Flex device ID to query.
 
     Returns:
         dict: JSON response containing the requested data.
     """
 
-    # Build the GetPlannedDispatches query.
-    # Deprecated : https://announcements.kraken.tech/announcements/public/604/
+    # Build the FlexPlannedDispatches query (https://developer.octopus.energy/graphql/reference/queries/#apisite:flexplanneddispatches).
     query = textwrap.dedent(
         """
-        query GetPlannedDispatches($accountNumber: String!) {
-          getPlannedDispatches: plannedDispatches(accountNumber: $accountNumber) {
+        query FlexPlannedDispatches($deviceId: String!) {
+          flexPlannedDispatches(deviceId: $deviceId) {
             start
             end
-            delta
-            meta {
-              source
-            }
+            type
+            energyAddedKwh
           }
         }
         """
     ).strip()
-    variables = {'accountNumber': account_number}
 
-    # Request the planned_dispatches.
+    variables = {'deviceId': device_id}
+
+    # Request the flexPlannedDispatches.
     response = octopus_energy.api_call(query, variables)
 
     # Clean and return the response (there's an excessive amount of nesting otherwise).
-    return response.get('data').get('getPlannedDispatches')
+    return response.get('data').get('flexPlannedDispatches')
+
+def get_or_update_octopus_energy_device_id(configuration, octopus_energy):
+    """
+    Queries the Octopus Energy® API for the Flex device data.
+    Then also updates the configuration file to include it.
+
+    Args:
+        configuration (dict): The full configuration dictionary.
+        octopus_energy (OctopusEnergy): An instantiated OctopusEnergy object for querying data.
+
+    Returns:
+        dict: JSON response containing the requested data.
+    """
+
+    # Get a reference to the 'octopus_energy' section of the configuration.
+    octopus_configuration = configuration.get('octopus_energy')
+
+    # Save time (and reduce ambiguity) by setting an device_id in the configuration.
+    if 'device_id' in octopus_configuration:
+        return octopus_configuration.get('device_id')
+
+    if 'account_number' not in octopus_configuration:
+        raise ValueError('Missing account_number in Octopus configuration.')
+
+    # Build the Devices query (https://developer.octopus.energy/graphql/reference/queries/#apisite:devices).
+    query = textwrap.dedent(
+        """
+        query Devices($accountNumber: String!) {
+          devices(accountNumber: $accountNumber) {
+            id
+            name
+            deviceType
+          }
+        }
+        """
+    ).strip()
+
+    variables = {'accountNumber': octopus_configuration.get('account_number')}
+
+    # Request the flexPlannedDispatches.
+    response = octopus_energy.api_call(query, variables)
+
+    # Clean and return the response (there's an excessive amount of nesting otherwise).
+    # Remove any "ELECTRICITY_METERS" in the list.
+    device_ids = [item for item in response.get('data').get('devices') if item.get('deviceType') != 'ELECTRICITY_METERS']
+
+    # Print the device_id for the user.
+    print('Found Device ID(s): ', end='')
+    print(*device_ids, sep=', ')
+
+    # It is undesirable to monitor an arbitrary device.
+    if len(device_ids) != 1:
+        raise ValueError(
+            f'You have {len(device_ids)} Flex devices under this account. '
+            'You must manually set one to monitor in the configuration.'
+        )
+
+    # Pick the only device_id.
+    device_id = device_ids[0].get('id')
+
+    # Store the device_id for future use.
+    # Add or update the device_id in the configuration.
+    octopus_configuration['device_id'] = device_id
+
+    # Update the file to include the modified device_id.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
+
+    # Return the discovered device_id.
+    return device_id
 
 def update_tesla_token_configuration(configuration, token_response):
     """
@@ -361,31 +429,6 @@ def get_tesla_api_session(configuration):
     # Return the initialised owner_api object.
     return owner_api
 
-def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
-    """
-    Update the Tesla® energy site ID configuration and save it to a JSON file.
-
-    This function adds the provided energy_site_id under the 'tesla' key,
-    updates the JSON file with the modified configuration.
-
-    Args:
-        configuration (dict): The main configuration dictionary to be updated.
-        energy_site_id (dict): The selected energy site id.
-
-    Returns:
-        None
-
-    Raises:
-        IOError: If there is an error while writing to the JSON file.
-    """
-
-    # Add or update the energy_site_id in the configuration.
-    configuration['tesla']['energy_site_id'] = energy_site_id
-
-    # Update the file to include the modified energy_site_id.
-    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
-        json.dump(configuration, json_file, indent=4)
-
 def get_tesla_energy_site_ids(owner_api):
     # Declare an empty list of energy_site_id.
     result = []
@@ -433,7 +476,12 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     energy_site_id = energy_site_ids[0]
 
     # Store the energy_site_id for future use.
-    update_tesla_energy_site_id_configuration(configuration, energy_site_id)
+    # Add or update the energy_site_id in the configuration.
+    configuration['tesla']['energy_site_id'] = energy_site_id
+
+    # Update the file to include the modified energy_site_id.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
 
     # Return the discovered energy_site_id.
     return energy_site_id
@@ -639,10 +687,11 @@ def main():
     # Get an authenticated instance of the Octopus Energy® API.
     octopus_energy = get_octopus_energy_api_session(configuration)
 
-    # Get the planned_dispatches.
-    octopus_planned_dispatches = query_octopus_energy_graphql(
-        octopus_energy, octopus_energy_configuration.get('account_number')
-    )
+    # Get the Flex Device ID.
+    device_id = get_or_update_octopus_energy_device_id(configuration, octopus_energy)
+
+    # Get the octopus_planned_dispatches.
+    octopus_planned_dispatches = query_octopus_energy_graphql(octopus_energy, device_id)
 
     # Output the current time.
     current_time = datetime.datetime.now().astimezone()
@@ -661,7 +710,7 @@ def main():
     for planned_dispatch in octopus_planned_dispatches:
         start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
         end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
-        print(f'{start} -> {end} ({planned_dispatch['delta']} kW via {planned_dispatch['meta']['source'].title()})')
+        print(f'{start} -> {end} ({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})')
 
         if start < current_time < end:
             should_max_backup_until = int(end.timestamp())
