@@ -66,6 +66,14 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from google.protobuf import json_format
 from google.protobuf.timestamp_pb2 import Timestamp
 
+# Wheter to use real identifiable data from the configuration file
+# (be careful if posting this online).
+USE_FAKE_DATA = True
+
+# Whether to demonstrate sending data.
+SEND_DEMO = False
+
+
 def to_expires_at(epoch: float = 0) -> int:
     OFFSET = 12
 
@@ -104,7 +112,7 @@ def build_tlv_payload(din: str, expires_at: int, protobuf_bytes: bytes) -> bytes
         *to_tlv(tag_pb2.TAG_END, protobuf_bytes)
     ])
 
-def sign_message(private_key, din, routable_message):
+def sign_message(private_key, public_key_bytes, din, routable_message):
     # Generate a signature expiration time.
     expires_at = to_expires_at()
 
@@ -115,10 +123,7 @@ def sign_message(private_key, din, routable_message):
     routable_message.signature_data.CopyFrom(
         signature_data_pb2.SignatureData(
             signer_identity=key_identity_pb2.KeyIdentity(
-                public_key=private_key.public_key().public_bytes(
-                    encoding=serialization.Encoding.DER,
-                    format=serialization.PublicFormat.PKCS1
-                )
+                public_key=public_key_bytes
             ),
             rsa_data=rsa_signature_data_pb2.RsaSignatureData(
                 expires_at=expires_at,
@@ -181,17 +186,12 @@ def generate_sample_message(private_key, public_key_bytes, gateway_din):
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
         ),
-        signature_data=signature_data_pb2.SignatureData(
-            signer_identity=key_identity_pb2.KeyIdentity(
-                public_key=public_key_bytes
-            )
-        ),
         protobuf_message_as_bytes=message_envelope.SerializeToString(),
         uuid=str(uuid.uuid4()).encode()
     )
 
     # Sign the message.
-    sign_message(private_key, gateway_din, routable_message)
+    sign_message(private_key, public_key_bytes, gateway_din, routable_message)
 
     # Return the routable message.
     return routable_message
@@ -222,17 +222,12 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
         ),
-        signature_data=signature_data_pb2.SignatureData(
-            signer_identity=key_identity_pb2.KeyIdentity(
-                public_key=public_key_bytes
-            )
-        ),
         protobuf_message_as_bytes=message_envelope.SerializeToString(),
         uuid=str(uuid.uuid4()).encode()
     )
 
     # Sign the message.
-    sign_message(private_key, gateway_din, routable_message)
+    sign_message(private_key, public_key_bytes, gateway_din, routable_message)
 
     # Return the routable message.
     return routable_message
@@ -266,13 +261,6 @@ if __name__ == '__main__':
     # Load configuration.
     with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
-
-    # Wheter to use real identifiable data from the configuration file
-    # (be careful if posting this online).
-    USE_FAKE_DATA = True
-
-    # Whether to demonstrate sending data.
-    SEND_DEMO = False
 
     if USE_FAKE_DATA:
         # Device Identification Number (DIN) 
