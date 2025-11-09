@@ -601,10 +601,10 @@ def update_tesla_max_backup_until_configuration(configuration, max_backup_until)
         IOError: If there is an error while writing to the JSON file.
     """
 
-    # Add or update the energy_site_id in the configuration.
+    # Add or update the max_backup_until in the configuration.
     configuration['tesla']['max_backup_until'] = max_backup_until
 
-    # Update the file to include the modified energy_site_id.
+    # Update the file to include the modified max_backup_until.
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
@@ -694,7 +694,7 @@ def main():
         print('Max Backup: Currently Inactive\n')
 
     # Evaluate planned dispatches.
-    should_max_backup_until = None
+    planned_dispatch_until = None
 
     for planned_dispatch in octopus_planned_dispatches:
         start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
@@ -702,13 +702,13 @@ def main():
         print(f'{start} -> {end} ({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})')
 
         if start < current_time < end:
-            should_max_backup_until = int(end.timestamp())
+            planned_dispatch_until = int(end.timestamp())
 
     # Output a new line.
     print()
 
     # Update Tesla®.
-    if should_max_backup_until and max_backup_until < current_time.timestamp():
+    if planned_dispatch_until and max_backup_until < current_time.timestamp():
         # Notify the user.
         print('Action: Start Max Backup!\n')
 
@@ -719,7 +719,7 @@ def main():
         schedule_manual_backup_event_request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
             scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
                 start_time=Timestamp(seconds=current_time),
-                duration_seconds=should_max_backup_until-current_time,
+                duration_seconds=planned_dispatch_until-current_time,
                 priority=(1 << 64) - 1 # MAX_UINT64
             )
         )
@@ -748,9 +748,9 @@ def main():
         send_routable_message(configuration, gateway_din, routable_message)
 
         # Update configuration file.
-        update_tesla_max_backup_until_configuration(configuration, should_max_backup_until)
+        update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
 
-    elif not should_max_backup_until and current_time.timestamp() < max_backup_until:
+    elif not planned_dispatch_until and current_time.timestamp() < max_backup_until:
         # Notify the user.
         print('Action: Stop Max Backup!')
 
