@@ -661,7 +661,7 @@ def main():
         configuration = json.load(json_file)
 
     # Get the Gateway Device Identification Number (DIN).
-    gateway_din = configuration.get('tesla', {}).get('gateway_din', {})
+    gateway_din = configuration.get('tesla', {}).get('gateway_din')
     if not gateway_din:
         raise ValueError('Gateway Device Identification Number (DIN) not set in configuration.')
 
@@ -682,13 +682,16 @@ def main():
     # Get the octopus_planned_dispatches.
     octopus_planned_dispatches = query_octopus_energy_graphql(octopus_energy, device_id)
 
+    # Get a reference to the current datetime and the timestamp.
+    current_dt = datetime.datetime.now().astimezone()
+    current_ts = int(current_dt.timestamp())
+
     # Output the current time.
-    current_time = datetime.datetime.now().astimezone()
-    print(f'Current Time: {current_time}')
+    print(f'Current Time: {current_dt}')
 
     # Get current Max Backup status.
-    max_backup_until = configuration.get('tesla', {}).get('max_backup_until', 0)
-    if current_time.timestamp() < max_backup_until:
+    max_backup_until = configuration.get('tesla', {}).get('max_backup_until')
+    if max_backup_until is not None and current_dt.timestamp() < max_backup_until:
         print(f'Max Backup: Active Until {datetime.datetime.fromtimestamp(max_backup_until)}\n')
     else:
         print('Max Backup: Currently Inactive\n')
@@ -701,25 +704,49 @@ def main():
         end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
         print(f'{start} -> {end} ({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})')
 
-        if start < current_time < end:
+        if start < current_dt < end:
             planned_dispatch_until = int(end.timestamp())
 
     # Output a new line.
     print()
 
+    # Determine whether to start or stop Max Backup.
+    should_start_max_backup = (
+        # We are in a planned dispatch time.
+        planned_dispatch_until
+        and (
+            # Max Backup is not currently active.
+            max_backup_until is None
+
+            # Or the configured Max Backup time is outdated.
+            or max_backup_until < current_ts
+
+            # Or the planned dispatch time has changed.
+            or planned_dispatch_until != max_backup_until
+        )
+    )
+
+    should_stop_max_backup = (
+        # We are not in a planned dispatch time.
+        not planned_dispatch_until
+
+        # But Max Backup is currently active.
+        and max_backup_until is not None
+
+        # And the current time is still within the configured Max Backup window.
+        and current_ts < max_backup_until
+    )
+
     # Update Tesla®.
-    if planned_dispatch_until and max_backup_until < current_time.timestamp():
+    if should_start_max_backup:
         # Notify the user.
         print('Action: Start Max Backup!\n')
-
-        # Take a reference of the current time.
-        current_time = int(time.time())
 
         # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
         schedule_manual_backup_event_request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
             scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
-                start_time=Timestamp(seconds=current_time),
-                duration_seconds=planned_dispatch_until-current_time,
+                start_time=Timestamp(seconds=current_ts),
+                duration_seconds=planned_dispatch_until-current_ts,
                 priority=(1 << 64) - 1 # MAX_UINT64
             )
         )
@@ -750,7 +777,7 @@ def main():
         # Update configuration file.
         update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
 
-    elif not planned_dispatch_until and current_time.timestamp() < max_backup_until:
+    elif should_stop_max_backup:
         # Notify the user.
         print('Action: Stop Max Backup!')
 
