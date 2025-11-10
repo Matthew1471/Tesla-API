@@ -44,9 +44,10 @@ import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_req
 import "tesla_api/protobuf/energy_device/v1/common_api_set_local_site_config_response.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_wifi_scan_request.proto";
 import "tesla_api/protobuf/energy_device/v1/common_api_wifi_scan_response.proto";
+import "tesla_api/protobuf/energy_device/v1/error_response.proto";
 
 message CommonMessages {
-  int32 error_response                                                                                                     = 1;
+  ErrorResponse error_response                                                                                             = 1;
   oneof message {
     CommonAPIGetSystemInfoRequest get_system_info_request                                                                  = 2;
     CommonAPIGetSystemInfoResponse get_system_info_response                                                                = 3;

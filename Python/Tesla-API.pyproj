@@ -104,6 +104,7 @@
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\energy_site_net_network_type_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\energy_site_net_pair_status_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\energy_site_net_removal_status_pb2.py" />
+    <Compile Include="src\tesla_api\protobuf\energy_device\v1\error_response_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\external_auth_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\external_auth_type_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\firmware_version_pb2.py" />
