@@ -594,6 +594,7 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
 
     # Print to console the routable message.
+    print(f'Request:')
     parse_message(routable_message.SerializeToString())
 
     # Send the message.
@@ -626,7 +627,7 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
         )
 
         # Print out the server's response.
-        print(json.dumps(response, indent=4))
+        print(f'Response:\n{json.dumps(response, indent=4)}')
     else:
         raise ValueError('Unknown SEND_VIA method set.')
 
@@ -692,7 +693,7 @@ def main():
     # Check if current time is within the overnight off-peak window.
     current_time = current_dt.time()
     if current_time >= start or current_time < end:
-        print('Nothing to do.')
+        print('Action: Nothing to do.\n')
         exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
@@ -720,23 +721,28 @@ def main():
     # Get current Max Backup status.
     max_backup_until = configuration.get('tesla', {}).get('max_backup_until')
     if max_backup_until is not None and current_dt.timestamp() < max_backup_until:
-        print(f'Max Backup: Active Until {datetime.datetime.fromtimestamp(max_backup_until)}\n')
+        print(f'Max Backup: Active Until {datetime.datetime.fromtimestamp(max_backup_until)}')
     else:
-        print('Max Backup: Currently Inactive\n')
+        print('Max Backup: Currently Inactive')
 
     # Evaluate planned dispatches.
     planned_dispatch_until = None
+
+    # Output a new line.
+    if octopus_planned_dispatches:
+        print('\nPlanned Dispatches:')
 
     for planned_dispatch in octopus_planned_dispatches:
         start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
         end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
         print(f'{start} -> {end} ({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})')
 
+        # Is the current date and time within this planned dispatch period.
         if start < current_dt < end:
             planned_dispatch_until = int(end.timestamp())
 
     # Output a new line.
-    if len(octopus_planned_dispatches) > 0:
+    if octopus_planned_dispatches:
         print()
 
     # Determine whether to start or stop Max Backup.
@@ -780,7 +786,7 @@ def main():
         update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
     elif should_reset_max_backup:
         # Notify the user.
-        print('Action: Reset Max Backup!')
+        print('Action: Reset Max Backup!\n')
 
         # Get the messages to send.
         messages = [
@@ -797,7 +803,7 @@ def main():
         update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
     elif should_stop_max_backup:
         # Notify the user.
-        print('Action: Stop Max Backup!')
+        print('Action: Stop Max Backup!\n')
 
         # Get the TEG Message.
         message = build_cancel_message()
@@ -808,7 +814,7 @@ def main():
         # Update configuration file.
         update_tesla_max_backup_until_configuration(configuration, None)
     else:
-        print('Nothing to do.')
+        print('Action: Nothing to do.\n')
 
 # Launch the main method if invoked directly.
 if __name__ == '__main__':
