@@ -426,27 +426,6 @@ def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
-def get_tesla_energy_site_ids(owner_api):
-    # Declare an empty list of energy_site_id.
-    result = []
-
-    # Query the list of products under the account.
-    response = owner_api.api_call('/api/1/products')
-
-    # Can this be parsed.
-    if 'response' not in response:
-        raise ValueError('Unable to process Tesla® products response.')
-
-    # Take each product.
-    for product in response['response']:
-        # Is this product an energy product.
-        if 'energy_site_id' in product:
-            # Add to the list.
-            result.append(product['energy_site_id'])
-
-    # Return the resulting list of energy site IDs.
-    return result
-
 def get_tesla_tou_periods(octopus_tariff, reduce_battery_wear=True):
     # Constants.
     SECONDS_PER_HALF_HOUR = 1800
@@ -705,7 +684,19 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
         return tesla_configuration.get('energy_site_id')
 
     # A Tesla® account can contain multiple energy products.
-    energy_site_ids = get_tesla_energy_site_ids(owner_api)
+    # Query the list of products under the account.
+    response = owner_api.api_call('/api/1/products')
+
+    # Can this be parsed.
+    if 'response' not in response:
+        raise ValueError('Unable to process Tesla® products response.')
+
+    # Collect all "energy_site_id" values from products.
+    energy_site_ids = [
+        product['energy_site_id']
+        for product in response['response']
+        if 'energy_site_id' in product
+    ]
 
     # Print the energy_site_id for the user.
     print('Found Energy Site ID(s): ', end='')

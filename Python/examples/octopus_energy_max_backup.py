@@ -220,7 +220,8 @@ def query_octopus_energy_graphql(octopus_energy, device_id):
         dict: JSON response containing the requested data.
     """
 
-    # Build the FlexPlannedDispatches query (https://developer.octopus.energy/graphql/reference/queries/#apisite:flexplanneddispatches).
+    # Build the FlexPlannedDispatches query
+    # (https://developer.octopus.energy/graphql/reference/queries/#apisite:flexplanneddispatches).
     query = textwrap.dedent(
         """
         query FlexPlannedDispatches($deviceId: String!) {
@@ -265,7 +266,8 @@ def get_or_update_octopus_energy_device_id(configuration, octopus_energy):
     if 'account_number' not in octopus_configuration:
         raise ValueError('Missing account_number in Octopus configuration.')
 
-    # Build the Devices query (https://developer.octopus.energy/graphql/reference/queries/#apisite:devices).
+    # Build the Devices query
+    # (https://developer.octopus.energy/graphql/reference/queries/#apisite:devices).
     query = textwrap.dedent(
         """
         query Devices($accountNumber: String!) {
@@ -283,9 +285,17 @@ def get_or_update_octopus_energy_device_id(configuration, octopus_energy):
     # Request the flexPlannedDispatches.
     response = octopus_energy.api_call(query, variables)
 
+    # Can this be parsed.
+    if 'data' not in response or 'devices' not in response['data']:
+        raise ValueError('Unable to process Octopus Energy® devices response.')
+
     # Clean and return the response (there's an excessive amount of nesting otherwise).
     # Remove any "ELECTRICITY_METERS" in the list.
-    device_ids = [item for item in response.get('data').get('devices') if item.get('deviceType') != 'ELECTRICITY_METERS']
+    device_ids = [
+        device
+        for device in response['data']['devices']
+        if device.get('deviceType') != 'ELECTRICITY_METERS'
+    ]
 
     # Print the device_id for the user.
     print('Found Device ID(s): ', end='')
@@ -430,27 +440,6 @@ def get_tesla_api_session(configuration):
     # Return the initialised owner_api object.
     return owner_api
 
-def get_tesla_energy_site_ids(owner_api):
-    # Declare an empty list of energy_site_id.
-    result = []
-
-    # Query the list of products under the account.
-    response = owner_api.api_call('/api/1/products')
-
-    # Can this be parsed.
-    if 'response' not in response:
-        raise ValueError('Unable to process Tesla® products response.')
-
-    # Take each product.
-    for product in response['response']:
-        # Is this product an energy product.
-        if 'energy_site_id' in product:
-            # Add to the list.
-            result.append(product['energy_site_id'])
-
-    # Return the resulting list of energy site IDs.
-    return result
-
 def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Get a reference to the 'tesla' section of the configuration.
     tesla_configuration = configuration.get('tesla')
@@ -460,7 +449,19 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
         return tesla_configuration.get('energy_site_id')
 
     # A Tesla® account can contain multiple energy products.
-    energy_site_ids = get_tesla_energy_site_ids(owner_api)
+    # Query the list of products under the account.
+    response = owner_api.api_call('/api/1/products')
+
+    # Can this be parsed.
+    if 'response' not in response:
+        raise ValueError('Unable to process Tesla® products response.')
+
+    # Collect all "energy_site_id" values from products.
+    energy_site_ids = [
+        product['energy_site_id']
+        for product in response['response']
+        if 'energy_site_id' in product
+    ]
 
     # Print the energy_site_id for the user.
     print('Found Energy Site ID(s): ', end='')
@@ -557,12 +558,18 @@ def parse_message(message):
     # Step 1: Parse the top-level RoutableMessage message.
     routable_message = routable_message_pb2.RoutableMessage()
     routable_message.ParseFromString(message)
-    print(f'Routable Message:\n\n{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n')
+    print(
+        f'Routable Message:\n\n'
+        f'{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n'
+    )
 
     # Step 2: Extract and parse the nested MessageEnvelope message.
     message_envelope = message_envelope_pb2.MessageEnvelope()
     message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
-    print(f'Message Envelope:\n\n{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n')
+    print(
+        f'Message Envelope:\n\n'
+        f'{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n'
+    )
 
 def update_tesla_max_backup_until_configuration(configuration, max_backup_until):
     """
@@ -631,7 +638,7 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
     else:
         raise ValueError('Unknown SEND_VIA method set.')
 
-def build_backup_message(current_ts, planned_dispatch_until):
+def build_start_message(current_ts, planned_dispatch_until):
     # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
     request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
         scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
@@ -648,7 +655,7 @@ def build_backup_message(current_ts, planned_dispatch_until):
 
     return teg_message
 
-def build_cancel_message():
+def build_stop_message():
     # Build a Tesla Energy Gateway (TEG) API cancel manual backup event request.
     request = teg_api_cancel_manual_backup_event_request_pb2.TEGAPICancelManualBackupEventRequest()
 
@@ -661,11 +668,12 @@ def build_cancel_message():
 
 def main():
     """
-    Main function for collecting and displaying Octopus Energy® Intelligent dynamic times.
+    Main function for starting Max Backup based off Octopus Energy® Intelligent dynamic times.
 
-    This function loads credentials from a JSON file, initializes a session with Octopus Energy®
-    API, retrieves the device planned dispatches (dynamic times), and displays the information on
-    the console.
+    This function loads credentials from a JSON file, checks we are within typically on-peak times
+    initializes a session with Octopus Energy® API, retrieves the device planned dispatches
+    (dynamic times), displays the information on the console and if within the planned dispatch
+    time slot, activates max backup and deactivates any existing one if not.
 
     Args:
         None
@@ -693,7 +701,7 @@ def main():
     # Check if current time is within the overnight off-peak window.
     current_time = current_dt.time()
     if current_time >= start or current_time < end:
-        print('Action: Nothing to do.\n')
+        print('Action: Nothing to do (currently off-peak).\n')
         exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
@@ -725,24 +733,27 @@ def main():
     else:
         print('Max Backup: Currently Inactive')
 
-    # Evaluate planned dispatches.
+    # Default: no planned dispatch.
     planned_dispatch_until = None
 
-    # Output a new line.
+    # Evaluate the planned dispatches if there are any.
     if octopus_planned_dispatches:
         print('\nPlanned Dispatches:')
 
-    for planned_dispatch in octopus_planned_dispatches:
-        start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
-        end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
-        print(f'{start} -> {end} ({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})')
+        # Evaluate planned dispatches.
+        for planned_dispatch in octopus_planned_dispatches:
+            start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
+            end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
+            print(
+                f'{start} -> {end} '
+                f'({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})'
+            )
 
-        # Is the current date and time within this planned dispatch period.
-        if start < current_dt < end:
-            planned_dispatch_until = int(end.timestamp())
+            # Is the current date and time within this planned dispatch period.
+            if start < current_dt < end:
+                planned_dispatch_until = int(end.timestamp())
 
-    # Output a new line.
-    if octopus_planned_dispatches:
+        # Output a blank line.
         print()
 
     # Determine whether to start or stop Max Backup.
@@ -777,7 +788,7 @@ def main():
         print('Action: Start Max Backup!\n')
 
         # Get the TEG Message.
-        message = build_backup_message(current_ts, planned_dispatch_until)
+        message = build_start_message(current_ts, planned_dispatch_until)
 
         # Get, sign and send a routable message.
         send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
@@ -790,8 +801,8 @@ def main():
 
         # Get the messages to send.
         messages = [
-            build_cancel_message(),
-            build_backup_message(current_ts, planned_dispatch_until)
+            build_stop_message(),
+            build_start_message(current_ts, planned_dispatch_until)
         ]
 
         # Process each message.
@@ -806,7 +817,7 @@ def main():
         print('Action: Stop Max Backup!\n')
 
         # Get the TEG Message.
-        message = build_cancel_message()
+        message = build_stop_message()
 
         # Get, sign and send a routable message.
         send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
