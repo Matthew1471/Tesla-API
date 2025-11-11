@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
-# Copyright (C) 2024 Matthew1471!
+# Copyright (C) 2025 Matthew1471!
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as

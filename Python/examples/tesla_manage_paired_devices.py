@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # This file is part of Tesla-API <https://github.com/Matthew1471/Tesla-API>
-# Copyright (C) 2024 Matthew1471!
+# Copyright (C) 2025 Matthew1471!
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as
@@ -210,7 +210,7 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     print('Found Energy Site ID(s): ', end='')
     print(*energy_site_ids, sep=', ')
 
-    # It is undesirable to change TOU settings on an arbitrary site.
+    # It is undesirable to change paired keys on an arbitrary site.
     if len(energy_site_ids) != 1:
         raise ValueError(
             f'You have {len(energy_site_ids)} energy products under this account. '
@@ -246,10 +246,11 @@ def main():
         configuration = json.load(json_file)
 
     if 'paired_device' in configuration.get('tesla', {}):
-        raise ValueError('You already have device pairing information in the configuration.\n'
-                         'To prevent overwriting an existing pairing this program will not continue.\n'
-                         'Please delete the paired_device from the configuration to attempt to re-pair again.'
-                         )
+        raise ValueError(
+            'You already have device pairing information in the configuration.\n'
+            'To prevent overwriting an existing pairing this program will not continue.\n'
+            'Please delete the paired_device from the configuration to attempt to re-pair again.'
+        )
 
     # Get an authenticated instance of the Tesla® Owner API.
     owner_api = get_tesla_api_session(configuration)
@@ -314,7 +315,7 @@ def main():
     print(json.dumps(response, indent=4))
 
     # Inform the user as to what they need to do next.
-    print('Please toggle a single Powerwall power switch for Powerwall to accept pairing request.')
+    print('Please toggle a single Powerwall power switch for Gateway to accept pairing request.')
 
     # Repeat for 2 minutes (120 seconds), every 5 seconds = 24 iterations
     for _ in range(24):
