@@ -158,31 +158,6 @@ def get_tesla_api_session(configuration):
     # Return the initialised owner_api object.
     return owner_api
 
-def update_tesla_energy_site_id_configuration(configuration, energy_site_id):
-    """
-    Update the Tesla® energy site ID configuration and save it to a JSON file.
-
-    This function adds the provided energy_site_id under the 'tesla' key,
-    updates the JSON file with the modified configuration.
-
-    Args:
-        configuration (dict): The main configuration dictionary to be updated.
-        energy_site_id (dict): The selected energy site id.
-
-    Returns:
-        None
-
-    Raises:
-        IOError: If there is an error while writing to the JSON file.
-    """
-
-    # Add or update the energy_site_id in the configuration.
-    configuration['tesla']['energy_site_id'] = energy_site_id
-
-    # Update the file to include the modified energy_site_id.
-    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
-        json.dump(configuration, json_file, indent=4)
-
 def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Get a reference to the 'tesla' section of the configuration.
     tesla_configuration = configuration.get('tesla')
@@ -221,7 +196,12 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     energy_site_id = energy_site_ids[0]
 
     # Store the energy_site_id for future use.
-    update_tesla_energy_site_id_configuration(configuration, energy_site_id)
+    # Add or update the energy_site_id in the configuration.
+    configuration['tesla']['energy_site_id'] = energy_site_id
+
+    # Update the file to include the modified energy_site_id.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
 
     # Return the discovered energy_site_id.
     return energy_site_id
