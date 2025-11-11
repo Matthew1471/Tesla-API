@@ -352,7 +352,7 @@ def update_tesla_token_configuration(configuration, token_response):
         'refresh_expiry': time.time() + 7776000
     }
 
-    # Add the token_configuration to the configuration
+    # Add the token_configuration to the configuration.
     configuration['tesla']['token'] = token_configuration
 
     # Update the file to include the modified token.
@@ -397,7 +397,7 @@ def get_tesla_api_session(configuration):
         # It is not valid so clear it.
         token_configuration['current'] = None
 
-        # Try refresh token if available and not expired
+        # Try refresh token if available and not expired.
         refresh_token = token_configuration.get('refresh')
         refresh_expiry = token_configuration.get('refresh_expiry')
         if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
@@ -496,7 +496,7 @@ def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_mess
             authorized_client=authorized_client_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
-            # Device Identification Number (DIN)
+            # Device Identification Number (DIN).
             din=din
         ),
         teg=teg_message
@@ -571,6 +571,14 @@ def parse_message(message):
         f'{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n'
     )
 
+def next_half_hour_epoch(epoch_time):
+    seconds_in_half_hour = 1800  # 30 minutes
+
+    offset = epoch_time % seconds_in_half_hour
+    if offset == 0:
+        return epoch_time  # Already aligned to :00 or :30.
+    return epoch_time + (seconds_in_half_hour - offset)
+
 def update_tesla_max_backup_until_configuration(configuration, max_backup_until):
     """
     Update the Tesla® energy site max_backup_until configuration and save it to a JSON file.
@@ -611,7 +619,7 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
         response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
         # Print out the server's response.
-        print(f'Response: {base64.b64encode(response).decode()}\n')
+        print(f'Response:\n')
         parse_message(response)
     elif SEND_VIA == 'OwnerAPI':
         # Get an authenticated instance of the Tesla® Owner API.
@@ -693,15 +701,21 @@ def main():
     # Output the current time.
     print(f'Current Time: {current_dt}')
 
-    # Abort if within the off-peak time anyway.
+    # Abort if currently within the regular off-peak time.
     off_peak = configuration.get('octopus_energy', {}).get('off_peak', {})
     start = datetime.datetime.strptime(off_peak.get('Start', '23:30'), "%H:%M").time()
     end = datetime.datetime.strptime(off_peak.get('End', '05:30'), "%H:%M").time()
 
-    # Check if current time is within the overnight off-peak window.
+    # Check if current time is within the regular overnight off-peak window.
     current_time = current_dt.time()
     if current_time >= start or current_time < end:
-        print('Action: Nothing to do (currently off-peak).\n')
+        print('Action: Nothing to do (currently in regular off-peak window).\n')
+        exit(0)
+
+    # Abort if currently within a 30 minute smart charging slot.
+    backoff_ts = configuration.get('tesla', {}).get('max_backup_backoff')
+    if backoff_ts is not None and current_ts < backoff_ts:
+        print('Action: Nothing to do (currently in a smart charging slot).\n')
         exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
@@ -756,7 +770,7 @@ def main():
         # Output a blank line.
         print()
 
-    # Determine whether to start or stop Max Backup.
+    # Determine whether to start, reset or stop Max Backup.
     should_start_max_backup = (
         # We are in a planned dispatch time.
         planned_dispatch_until
@@ -826,6 +840,23 @@ def main():
         update_tesla_max_backup_until_configuration(configuration, None)
     else:
         print('Action: Nothing to do.\n')
+
+    # We are within a 30 minute smart charging slot.
+    if planned_dispatch_until:
+        # Wait up to another 30 minutes.
+        configuration['tesla']['max_backup_backoff'] = next_half_hour_epoch(current_ts)
+
+        # Update the file to include the modified max_backup_backoff.
+        with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+            json.dump(configuration, json_file, indent=4)
+    # Remove any existing reference to a smart charging slot.
+    elif configuration.get("tesla", {}).get('max_backup_backoff'):
+        # Remove max_backup_backoff from the config.
+        configuration['tesla'].pop('max_backup_backoff', None)
+
+        # Update the file to remove the max_backup_backoff.
+        with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+            json.dump(configuration, json_file, indent=4)
 
 # Launch the main method if invoked directly.
 if __name__ == '__main__':
