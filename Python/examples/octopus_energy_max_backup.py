@@ -92,6 +92,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 # The method to send the messages over (either OwnerAPI or LocalAPI).
 SEND_VIA = 'LocalAPI'
 
+
 def update_octopus_energy_token_configuration(configuration, token_response):
     """
     Update the Octopus Energy® token configuration and save it to a JSON file.
@@ -486,74 +487,43 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Return the discovered energy_site_id.
     return energy_site_id
 
-def get_routable_message(domain, protobuf_message_as_bytes):
-    # Build the routable message containing the message envelope.
-    return routable_message_pb2.RoutableMessage(
-        to_destination=destination_pb2.Destination(
-            domain=domain
-        ),
-        protobuf_message_as_bytes=protobuf_message_as_bytes,
-        uuid=str(uuid.uuid4()).encode()
-    )
-
-def get_message_envelope(gateway_din, teg_message):
+def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_message):
     # Build the message envelope containing the teg_message.
-    return message_envelope_pb2.MessageEnvelope(
+    message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
             authorized_client=authorized_client_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
-            # Device Identification Number (DIN) 
-            din=gateway_din
+            # Device Identification Number (DIN)
+            din=din
         ),
         teg=teg_message
     )
 
-def to_expires_at(epoch: float = 0) -> int:
-    OFFSET = 12
+    # Build the routable message containing the message envelope.
+    routable_message = routable_message_pb2.RoutableMessage(
+        to_destination=destination_pb2.Destination(
+            domain=domain_pb2.DOMAIN_ENERGY_DEVICE
+        ),
+        # Serialize the message envelope to a string.
+        protobuf_message_as_bytes=message_envelope.SerializeToString(),
+        uuid=str(uuid.uuid4()).encode()
+    )
 
-    if epoch <= 0:
-        epoch = time.time()  # Current time in seconds.
-
-    # Round up to nearest second and add OFFSET seconds.
-    return math.ceil(epoch) + OFFSET
-
-def to_tlv(tag: int, value_bytes: bytes) -> list[bytes]:
-    """
-    Converts a tag and value buffer into a list of buffers representing the TLV structure
-    [Tag, Length, Value] or [Tag, Value].
-    """
-
-    # Convert the tag to a single byte.
-    tag_bytes = tag.to_bytes()
-
-    # Check if the tag is TAG_END.
-    if tag == tag_pb2.TAG_END:
-        # Return the tag byte and the value byte.
-        return [tag_bytes, value_bytes]
-
-    # Get the length of the value in bytes.
-    length_bytes = len(value_bytes).to_bytes()
-
-    # Return a list of the three components.
-    return [tag_bytes, length_bytes, value_bytes]
-
-def build_tlv_payload(din: str, expires_at: int, protobuf_bytes: bytes) -> bytes:
-    return b''.join([
-        *to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
-        *to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
-        *to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
-        *to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
-        *to_tlv(tag_pb2.TAG_END, protobuf_bytes)
-    ])
-
-def sign_message(private_key, public_key_bytes, din, routable_message):
     # Generate a signature expiration time.
-    expires_at = to_expires_at()
+    # Round up to nearest second and add 12 seconds.
+    expires_at = math.ceil(time.time()) + 12
 
     # Build the TLV payload to sign.
-    tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
+    tlv_encoded_message = b"".join([
+        to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
+        to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
+        to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
+        to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
+        tag_pb2.TAG_END.to_bytes(),
+        routable_message.protobuf_message_as_bytes
+    ])
 
     # Sign message and add the signature.
     routable_message.signature_data.CopyFrom(
@@ -571,6 +541,17 @@ def sign_message(private_key, public_key_bytes, din, routable_message):
             )
         )
     )
+
+    # Return the signed routable Tesla Energy Gateway (TEG) message.
+    return routable_message
+
+def to_tlv(tag: int, value_bytes: bytes) -> bytes:
+    """
+    Encodes a tag and value buffer into a TLV (Tag-Length-Value) byte structure:
+    [Tag (1 byte), Length (1 byte), Value (N bytes)].
+    """
+    # Return the three components in TLV format.
+    return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
 def parse_message(message):
     # Step 1: Parse the top-level RoutableMessage message.
@@ -608,7 +589,14 @@ def update_tesla_max_backup_until_configuration(configuration, max_backup_until)
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
-def send_routable_message(configuration, gateway_din, routable_message):
+def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, teg_message):
+    # Get the signed routable message.
+    routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
+
+    # Print to console the routable message.
+    parse_message(routable_message.SerializeToString())
+
+    # Send the message.
     if SEND_VIA == 'LocalAPI':
         # Send request locally over LAN.
         gateway = Gateway(configuration.get('gateway', {}).get('host'))
@@ -642,6 +630,34 @@ def send_routable_message(configuration, gateway_din, routable_message):
     else:
         raise ValueError('Unknown SEND_VIA method set.')
 
+def build_backup_message(current_ts, planned_dispatch_until):
+    # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
+    request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
+        scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
+            start_time=Timestamp(seconds=current_ts),
+            duration_seconds=planned_dispatch_until-current_ts,
+            priority=(1 << 64) - 1 # MAX_UINT64
+        )
+    )
+
+    # Build a Tesla Energy Gateway (TEG) message containing the schedule_manual_backup_event_request.
+    teg_message = teg_messages_pb2.TEGMessages(
+        schedule_manual_backup_event_request=request
+    )
+
+    return teg_message
+
+def build_cancel_message():
+    # Build a Tesla Energy Gateway (TEG) API cancel manual backup event request.
+    request = teg_api_cancel_manual_backup_event_request_pb2.TEGAPICancelManualBackupEventRequest()
+
+    # Build a Tesla Energy Gateway (TEG) message containing the cancel_manual_backup_event_request.
+    teg_message = teg_messages_pb2.TEGMessages(
+        cancel_manual_backup_event_request=request
+    )
+
+    return teg_message
+
 def main():
     """
     Main function for collecting and displaying Octopus Energy® Intelligent dynamic times.
@@ -660,6 +676,24 @@ def main():
     # Load configuration.
     with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
+
+    # Get a reference to the current datetime and the timestamp.
+    current_dt = datetime.datetime.now().astimezone()
+    current_ts = int(current_dt.timestamp())
+
+    # Output the current time.
+    print(f'Current Time: {current_dt}')
+
+    # Abort if within the off-peak time anyway.
+    off_peak = configuration.get('octopus_energy', {}).get('off_peak', {})
+    start = datetime.datetime.strptime(off_peak.get('Start', '23:30'), "%H:%M").time()
+    end = datetime.datetime.strptime(off_peak.get('End', '05:30'), "%H:%M").time()
+
+    # Check if current time is within the overnight off-peak window.
+    current_time = current_dt.time()
+    if current_time >= start or current_time < end:
+        print('Nothing to do.')
+        exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
     gateway_din = configuration.get('tesla', {}).get('gateway_din')
@@ -683,13 +717,6 @@ def main():
     # Get the octopus_planned_dispatches.
     octopus_planned_dispatches = query_octopus_energy_graphql(octopus_energy, device_id)
 
-    # Get a reference to the current datetime and the timestamp.
-    current_dt = datetime.datetime.now().astimezone()
-    current_ts = int(current_dt.timestamp())
-
-    # Output the current time.
-    print(f'Current Time: {current_dt}')
-
     # Get current Max Backup status.
     max_backup_until = configuration.get('tesla', {}).get('max_backup_until')
     if max_backup_until is not None and current_dt.timestamp() < max_backup_until:
@@ -709,22 +736,24 @@ def main():
             planned_dispatch_until = int(end.timestamp())
 
     # Output a new line.
-    print()
+    if len(octopus_planned_dispatches) > 0:
+        print()
 
     # Determine whether to start or stop Max Backup.
     should_start_max_backup = (
         # We are in a planned dispatch time.
         planned_dispatch_until
-        and (
-            # Max Backup is not currently active.
-            max_backup_until is None
 
-            # Or the configured Max Backup time is outdated.
-            or max_backup_until < current_ts
+        # And Max Backup is not currently active or has since expired.
+        and (max_backup_until is None or max_backup_until < current_ts)
+    )
 
-            # Or the planned dispatch time has changed.
-            or planned_dispatch_until != max_backup_until
-        )
+    should_reset_max_backup = (
+        # We are in a planned dispatch time.
+        planned_dispatch_until
+
+        # And Max Backup is currently active but the dispatch times have changed.
+        and (max_backup_until is not None and max_backup_until != planned_dispatch_until)
     )
 
     should_stop_max_backup = (
@@ -732,81 +761,49 @@ def main():
         not planned_dispatch_until
 
         # But Max Backup is currently active.
-        and max_backup_until is not None
-
-        # And the current time is still within the configured Max Backup window.
-        and current_ts < max_backup_until
+        # And the current time is still within the configured Max Backup expiration time.
+        and max_backup_until is not None and current_ts < max_backup_until
     )
 
-    # Update Tesla®.
+    # Update Tesla® Gateway.
     if should_start_max_backup:
         # Notify the user.
         print('Action: Start Max Backup!\n')
 
-        # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
-        schedule_manual_backup_event_request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
-            scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
-                start_time=Timestamp(seconds=current_ts),
-                duration_seconds=planned_dispatch_until-current_ts,
-                priority=(1 << 64) - 1 # MAX_UINT64
-            )
-        )
+        # Get the TEG Message.
+        message = build_backup_message(current_ts, planned_dispatch_until)
 
-        # Build a Tesla Energy Gateway (TEG) message containing the schedule_manual_backup_event_request.
-        teg_message = teg_messages_pb2.TEGMessages(
-            schedule_manual_backup_event_request=schedule_manual_backup_event_request
-        )
-
-        # Get the message envelope.
-        message_envelope = get_message_envelope(gateway_din, teg_message)
-
-        # Serialize the message envelope to a string.
-        protobuf_message_as_bytes = message_envelope.SerializeToString()
-
-        # Get the routable message.
-        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes)
-
-        # Sign the routable message.
-        sign_message(private_key, public_key_bytes, gateway_din, routable_message)
-
-        # Print to console the routable message.
-        parse_message(routable_message.SerializeToString())
-
-        # Send the message.
-        send_routable_message(configuration, gateway_din, routable_message)
+        # Get, sign and send a routable message.
+        send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
 
         # Update configuration file.
         update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
+    elif should_reset_max_backup:
+        # Notify the user.
+        print('Action: Reset Max Backup!')
 
+        # Get the messages to send.
+        messages = [
+            build_cancel_message(),
+            build_backup_message(current_ts, planned_dispatch_until)
+        ]
+
+        # Process each message.
+        for message in messages:
+            # Get, sign and send a routable message.
+            send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
+
+        # Update configuration file.
+        update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
     elif should_stop_max_backup:
         # Notify the user.
         print('Action: Stop Max Backup!')
 
-        # Build a Tesla Energy Gateway (TEG) API cancel manual backup event request.
-        cancel_manual_backup_event_request = teg_api_cancel_manual_backup_event_request_pb2.TEGAPICancelManualBackupEventRequest()
+        # Get the TEG Message.
+        message = build_cancel_message()
 
-        # Build a Tesla Energy Gateway (TEG) message containing the cancel_manual_backup_event_request.
-        teg_message = teg_messages_pb2.TEGMessages(
-            cancel_manual_backup_event_request=cancel_manual_backup_event_request
-        )
-
-        # Get the message envelope.
-        message_envelope = get_message_envelope(gateway_din, teg_message)
-
-        # Serialize the message envelope to a string.
-        protobuf_message_as_bytes = message_envelope.SerializeToString()
-
-        # Get the routable message.
-        routable_message = get_routable_message(domain_pb2.DOMAIN_ENERGY_DEVICE, protobuf_message_as_bytes)
-
-        # Sign the routable message.
-        sign_message(private_key, public_key_bytes, gateway_din, routable_message)
-
-        # Print to console the routable message.
-        parse_message(routable_message.SerializeToString())
-
-        # Send the message.
-        send_routable_message(configuration, gateway_din, routable_message)
+        # Get, sign and send a routable message.
+        send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
 
         # Update configuration file.
         update_tesla_max_backup_until_configuration(configuration, None)
