@@ -66,7 +66,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from google.protobuf import json_format
 from google.protobuf.timestamp_pb2 import Timestamp
 
-# Wheter to use real identifiable data from the configuration file
+# Whether to use real identifiable data from the configuration file
 # (be careful if posting this online).
 USE_FAKE_DATA = True
 
@@ -74,50 +74,28 @@ USE_FAKE_DATA = True
 SEND_DEMO = False
 
 
-def to_expires_at(epoch: float = 0) -> int:
-    OFFSET = 12
-
-    if epoch <= 0:
-        epoch = time.time()  # Current time in seconds.
-
-    # Round up to nearest second and add OFFSET seconds.
-    return math.ceil(epoch) + OFFSET
-
-def to_tlv(tag: int, value_bytes: bytes) -> list[bytes]:
+def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     """
-    Converts a tag and value buffer into a list of buffers representing the TLV structure
-    [Tag, Length, Value] or [Tag, Value].
+    Encodes a tag and value buffer into a TLV (Tag-Length-Value) byte structure:
+    [Tag (1 byte), Length (1 byte), Value (N bytes)].
     """
+    # Return the three components in TLV format.
+    return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
-    # Convert the tag to a single byte.
-    tag_bytes = tag.to_bytes()
-
-    # Check if the tag is TAG_END.
-    if tag == tag_pb2.TAG_END:
-        # Return the tag byte and the value byte.
-        return [tag_bytes, value_bytes]
-
-    # Get the length of the value in bytes.
-    length_bytes = len(value_bytes).to_bytes()
-
-    # Return a list of the three components.
-    return [tag_bytes, length_bytes, value_bytes]
-
-def build_tlv_payload(din: str, expires_at: int, protobuf_bytes: bytes) -> bytes:
-    return b''.join([
-        *to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
-        *to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
-        *to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
-        *to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
-        *to_tlv(tag_pb2.TAG_END, protobuf_bytes)
+def build_tlv_payload(din: str, expires_at: int, routable_message) -> bytes:
+    return b"".join([
+        to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
+        to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
+        to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
+        to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
+        tag_pb2.TAG_END.to_bytes(),
+        routable_message.protobuf_message_as_bytes
     ])
 
 def sign_message(private_key, public_key_bytes, din, routable_message):
     # Generate a signature expiration time.
-    expires_at = to_expires_at()
-
-    # Build the TLV payload to sign.
-    tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
+    # Round up to nearest second and add 12 seconds.
+    expires_at = math.ceil(time.time()) + 12
 
     # Sign message and add the signature.
     routable_message.signature_data.CopyFrom(
@@ -128,7 +106,7 @@ def sign_message(private_key, public_key_bytes, din, routable_message):
             rsa_data=rsa_signature_data_pb2.RsaSignatureData(
                 expires_at=expires_at,
                 signature=private_key.sign(
-                    data=tlv_encoded_message,
+                    data=build_tlv_payload(din, expires_at, routable_message),
                     padding=padding.PKCS1v15(),
                     algorithm=hashes.SHA512()
                 )
@@ -143,13 +121,10 @@ def verify_signature(din, routable_message):
     # Obtain the signature expiration time.
     expires_at = routable_message.signature_data.rsa_data.expires_at
 
-    # Build the TLV payload to verify.
-    tlv_encoded_message = build_tlv_payload(din, expires_at, routable_message.protobuf_message_as_bytes)
-
     # Verify the signature.
     public_key.verify(
         signature=routable_message.signature_data.rsa_data.signature,
-        data=tlv_encoded_message,
+        data=build_tlv_payload(din, expires_at, routable_message),
         padding=padding.PKCS1v15(),
         algorithm=hashes.SHA512()
     )
@@ -263,7 +238,7 @@ if __name__ == '__main__':
         configuration = json.load(json_file)
 
     if USE_FAKE_DATA:
-        # Device Identification Number (DIN) 
+        # Device Identification Number (DIN).
         gateway_din = '1152100-13-J--AA123456B7C89D'
 
         # Generate a fake paired device key pair.
@@ -277,18 +252,18 @@ if __name__ == '__main__':
             format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.NoEncryption()
         )
-        print(f'Fake Private Key:\n{base64.b64encode(private_key_bytes)}\n')
+        print(f'Demo Private Key:\n{base64.b64encode(private_key_bytes)}\n')
 
         public_key_bytes = private_key.public_key().public_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.PKCS1
         )
-        print(f'Fake Public Key:\n{base64.b64encode(public_key_bytes)}\n')
+        print(f'Demo Public Key:\n{base64.b64encode(public_key_bytes)}\n')
     else:
         # Get a reference to the tesla part of the configuration.
         tesla_configuration = configuration.get('tesla', {})
 
-        # Get the Gateway's Device Identification Number (DIN) 
+        # Get the Gateway's Device Identification Number (DIN).
         gateway_din = tesla_configuration.get('gateway_din')
 
         # Get the private and public key of the paired 'phone'.
