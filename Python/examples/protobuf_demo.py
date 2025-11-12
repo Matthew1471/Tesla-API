@@ -222,14 +222,6 @@ def parse_message(message, gateway_din=None, verify=True):
     message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
     print(f'Message Envelope:\n\n{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n')
 
-def send_command(protobuf_bytes, host = None):
-    # Send request over LAN.
-    gateway = Gateway(host)
-    response = gateway.api_call('/tedapi/v1r', 'POST', data=protobuf_bytes)
-
-    # Decode response.
-    parse_message(response, verify=False)
-
 # Launch the test method if invoked directly.
 if __name__ == '__main__':
 
@@ -284,8 +276,9 @@ if __name__ == '__main__':
         # Create another sample message.
         protobuf_bytes = generate_sample_message2(private_key, public_key_bytes, gateway_din).SerializeToString()
 
-        # Send this example to the local Gateway.
-        send_command(
-            protobuf_bytes=protobuf_bytes,
-            host=configuration.get('gateway', {}).get('host', None)
-        )
+        # Send this example to the Gateway via the LAN.
+        gateway = Gateway(configuration.get('gateway', {}).get('host', None))
+        response = gateway.api_call('/tedapi/v1r', 'POST', data=protobuf_bytes)
+
+        # Decode response.
+        parse_message(response, verify=False)
