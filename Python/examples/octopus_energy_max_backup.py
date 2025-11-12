@@ -39,6 +39,9 @@ import json
 # Used to convert a time to an expiration time.
 import math
 
+# We gracefully exit if during specific times.
+import sys
+
 # Text in variables is dedented while still maintaing source code indentation.
 import textwrap
 
@@ -47,6 +50,15 @@ import time
 
 # We generate unique IDs (uuids).
 import uuid
+
+# We perform cryptographic operations.
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+
+# Third party library for dealing with protobuf data;
+# "pip install protobuf" if getting import errors.
+from google.protobuf import json_format
+from google.protobuf.timestamp_pb2 import Timestamp
 
 # All the shared Tesla® API functions are in this package.
 from tesla_api.cloud.authentication import Authentication
@@ -79,15 +91,6 @@ from tesla_api.protobuf.universal_message.v1 import (
 
 # All the shared Octopus Energy® functions are in this package.
 from tesla_api.octopus_energy import OctopusEnergy
-
-# We perform cryptographic operations.
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-
-# Third party library for dealing with protobuf data;
-# "pip install protobuf" if getting import errors.
-from google.protobuf import json_format
-from google.protobuf.timestamp_pb2 import Timestamp
 
 # The method to send the messages over (either OwnerAPI or LocalAPI).
 SEND_VIA = 'LocalAPI'
@@ -720,13 +723,13 @@ def main():
     current_time = current_dt.time()
     if current_time >= start or current_time < end:
         print('Action: Nothing to do (currently in regular off-peak window).\n')
-        exit(0)
+        sys.exit(0)
 
     # Abort if currently within a 30 minute smart charging slot.
     backoff_ts = configuration.get('tesla', {}).get('max_backup_backoff')
     if backoff_ts is not None and current_ts < backoff_ts:
         print('Action: Nothing to do (currently in a smart charging slot).\n')
-        exit(0)
+        sys.exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
     gateway_din = configuration.get('tesla', {}).get('gateway_din')

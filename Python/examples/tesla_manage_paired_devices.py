@@ -31,13 +31,13 @@ import json
 # We compare against the epoch time.
 import time
 
+# We perform cryptographic operations.
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 # All the shared Tesla® API functions are in this package.
 from tesla_api.cloud.authentication import Authentication
 from tesla_api.cloud.owner_api import OwnerAPI
-
-# We perform cryptographic operations.
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 
 def update_tesla_token_configuration(configuration, token_response):

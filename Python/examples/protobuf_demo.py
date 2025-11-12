@@ -29,6 +29,15 @@ import time
 # We generate unique IDs (uuids).
 import uuid
 
+# We perform cryptographic operations.
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
+# Third party library for dealing with protobuf data;
+# "pip install protobuf" if getting import errors.
+from google.protobuf import json_format
+from google.protobuf.timestamp_pb2 import Timestamp
+
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_pb2,
@@ -56,15 +65,6 @@ from tesla_api.protobuf.universal_message.v1 import (
 
 # For sending local commands.
 from tesla_api.local.gateway import Gateway
-
-# We perform cryptographic operations.
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-
-# Third party library for dealing with protobuf data;
-# "pip install protobuf" if getting import errors.
-from google.protobuf import json_format
-from google.protobuf.timestamp_pb2 import Timestamp
 
 # Whether to use real identifiable data from the configuration file
 # (be careful if posting this online).
