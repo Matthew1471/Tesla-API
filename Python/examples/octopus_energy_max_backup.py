@@ -559,7 +559,7 @@ def parse_message(message):
     routable_message = routable_message_pb2.RoutableMessage()
     routable_message.ParseFromString(message)
     print(
-        f'Routable Message:\n\n'
+        'Routable Message:\n\n'
         f'{json_format.MessageToJson(routable_message, preserving_proto_field_name=True)}\n'
     )
 
@@ -567,7 +567,7 @@ def parse_message(message):
     message_envelope = message_envelope_pb2.MessageEnvelope()
     message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
     print(
-        f'Message Envelope:\n\n'
+        'Message Envelope:\n\n'
         f'{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n'
     )
 
@@ -609,7 +609,10 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
 
     # Print to console the routable message.
-    print(f'Request:')
+    print(
+        'Request:\n'
+        '--------\n'
+    )
     parse_message(routable_message.SerializeToString())
 
     # Send the message.
@@ -619,7 +622,10 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
         response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
         # Print out the server's response.
-        print(f'Response:\n')
+        print(
+            'Response:\n'
+            '---------\n'
+        )
         parse_message(response)
     elif SEND_VIA == 'OwnerAPI':
         # Get an authenticated instance of the Tesla® Owner API.
@@ -642,7 +648,11 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
         )
 
         # Print out the server's response.
-        print(f'Response:\n{json.dumps(response, indent=4)}')
+        print(
+            'Response:\n'
+            '---------\n'
+            f'{json.dumps(response, indent=4)}'
+        )
     else:
         raise ValueError('Unknown SEND_VIA method set.')
 
