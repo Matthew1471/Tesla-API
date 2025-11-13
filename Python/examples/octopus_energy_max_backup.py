@@ -574,14 +574,6 @@ def parse_message(message):
         f'{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n'
     )
 
-def next_half_hour_epoch(epoch_time):
-    seconds_in_half_hour = 1800  # 30 minutes
-
-    offset = epoch_time % seconds_in_half_hour
-    if offset == 0:
-        return epoch_time  # Already aligned to :00 or :30.
-    return epoch_time + (seconds_in_half_hour - offset)
-
 def update_tesla_max_backup_until_configuration(configuration, max_backup_until):
     """
     Update the Tesla® energy site max_backup_until configuration and save it to a JSON file.
@@ -856,8 +848,10 @@ def main():
 
     # We are within a 30 minute smart charging slot.
     if planned_dispatch_until:
-        # Wait up to another 30 minutes.
-        configuration['tesla']['max_backup_backoff'] = next_half_hour_epoch(current_ts)
+        # Round up to the next 30-minute boundary
+        HALF_HOUR_IN_SECONDS = 30 * 60
+        time_to_next_boundary = HALF_HOUR_IN_SECONDS - (current_ts % HALF_HOUR_IN_SECONDS)
+        configuration['tesla']['max_backup_backoff'] = current_ts + time_to_next_boundary
 
         # Update the file to include the modified max_backup_backoff.
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
