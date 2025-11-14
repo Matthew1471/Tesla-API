@@ -22,6 +22,6 @@ message AuthorizationRecord {
   AuthorizedState state                   = 6;
   AuthorizedVerificationType verification = 7;
   google.protobuf.Timestamp added_time    = 8;
-  string identifiered_signature_request   = 9;
-  bytes authorized_by_public_key_response = 10;
+  string identifier                       = 9;
+  bytes authorized_by_public_key          = 10;
 }
