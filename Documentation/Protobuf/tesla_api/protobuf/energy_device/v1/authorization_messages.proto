@@ -6,18 +6,18 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "AuthorizationMessages";
 
-import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_request.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_response.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_remove_authorized_client_request.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_remove_authorized_client_response.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_list_authorized_clients_request.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_list_authorized_clients_response.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_get_signed_commands_public_key_request.proto";
-import "tesla_api/protobuf/energy_device/v1/authorization_api_get_signed_commands_public_key_response.proto";
 import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_by_trusted_signature_request.proto";
 import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_by_trusted_signature_response.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_request.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_add_authorized_client_response.proto";
 import "tesla_api/protobuf/energy_device/v1/authorization_api_configure_remote_service_request.proto";
 import "tesla_api/protobuf/energy_device/v1/authorization_api_configure_remote_service_response.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_get_signed_commands_public_key_request.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_get_signed_commands_public_key_response.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_list_authorized_clients_request.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_list_authorized_clients_response.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_remove_authorized_client_request.proto";
+import "tesla_api/protobuf/energy_device/v1/authorization_api_remove_authorized_client_response.proto";
 
 message AuthorizationMessages {
   oneof message {
