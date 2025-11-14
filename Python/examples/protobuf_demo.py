@@ -40,7 +40,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
-    authorized_client_pb2,
+    authorized_client_type_pb2,
     control_event_scheduling_info_pb2,
     common_api_get_networking_status_request_pb2,
     common_messages_pb2,
@@ -148,7 +148,7 @@ def generate_sample_message(private_key, public_key_bytes, gateway_din):
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
-            authorized_client=authorized_client_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
+            authorized_client=authorized_client_type_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
             din=gateway_din
@@ -184,7 +184,7 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
-            authorized_client=authorized_client_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
+            authorized_client=authorized_client_type_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
             din=gateway_din

@@ -67,7 +67,7 @@ from tesla_api.cloud.owner_api import OwnerAPI
 
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
-    authorized_client_pb2,
+    authorized_client_type_pb2,
     control_event_scheduling_info_pb2,
     delivery_channel_pb2,
     message_envelope_pb2,
@@ -496,7 +496,7 @@ def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_mess
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
-            authorized_client=authorized_client_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
+            authorized_client=authorized_client_type_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
             # Device Identification Number (DIN).
