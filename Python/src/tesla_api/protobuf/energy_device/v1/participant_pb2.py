@@ -22,12 +22,12 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from tesla_api.protobuf.energy_device.v1 import authorized_client_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_authorized__client__pb2
+from tesla_api.protobuf.energy_device.v1 import authorized_client_type_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_authorized__client__type__pb2
 from tesla_api.protobuf.energy_device.v1 import local_participant_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_local__participant__pb2
 from tesla_api.protobuf.energy_device.v1 import tesla_service_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_tesla__service__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n5tesla_api/protobuf/energy_device/v1/participant.proto\x12\x1ctesla.proto.energy_device.v1\x1a;tesla_api/protobuf/energy_device/v1/authorized_client.proto\x1a;tesla_api/protobuf/energy_device/v1/local_participant.proto\x1a\x37tesla_api/protobuf/energy_device/v1/tesla_service.proto\"\xf5\x01\n\x0bParticipant\x12\r\n\x03\x64in\x18\x01 \x01(\tH\x00\x12\x43\n\rtesla_service\x18\x02 \x01(\x0e\x32*.tesla.proto.energy_device.v1.TeslaServiceH\x00\x12?\n\x05local\x18\x03 \x01(\x0e\x32..tesla.proto.energy_device.v1.LocalParticipantH\x00\x12K\n\x11\x61uthorized_client\x18\x04 \x01(\x0e\x32..tesla.proto.energy_device.v1.AuthorizedClientH\x00\x42\x04\n\x02idB\x7f\n$com.tesla.generated.energy_device.v1B\x0bParticipantZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n5tesla_api/protobuf/energy_device/v1/participant.proto\x12\x1ctesla.proto.energy_device.v1\x1a@tesla_api/protobuf/energy_device/v1/authorized_client_type.proto\x1a;tesla_api/protobuf/energy_device/v1/local_participant.proto\x1a\x37tesla_api/protobuf/energy_device/v1/tesla_service.proto\"\xf9\x01\n\x0bParticipant\x12\r\n\x03\x64in\x18\x01 \x01(\tH\x00\x12\x43\n\rtesla_service\x18\x02 \x01(\x0e\x32*.tesla.proto.energy_device.v1.TeslaServiceH\x00\x12?\n\x05local\x18\x03 \x01(\x0e\x32..tesla.proto.energy_device.v1.LocalParticipantH\x00\x12O\n\x11\x61uthorized_client\x18\x04 \x01(\x0e\x32\x32.tesla.proto.energy_device.v1.AuthorizedClientTypeH\x00\x42\x04\n\x02idB\x7f\n$com.tesla.generated.energy_device.v1B\x0bParticipantZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,6 +35,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'tesla_api.protobuf.energy_d
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n$com.tesla.generated.energy_device.v1B\013ParticipantZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1'
-  _globals['_PARTICIPANT']._serialized_start=267
-  _globals['_PARTICIPANT']._serialized_end=512
+  _globals['_PARTICIPANT']._serialized_start=272
+  _globals['_PARTICIPANT']._serialized_end=521
 # @@protoc_insertion_point(module_scope)
