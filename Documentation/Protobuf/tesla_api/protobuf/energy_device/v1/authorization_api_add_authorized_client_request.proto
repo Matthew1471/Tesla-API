@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package tesla.proto.energy_device.v1;
+
+option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1";
+option java_package = "com.tesla.generated.energy_device.v1";
+option java_outer_classname = "AuthorizationAPIAddAuthorizedClientRequest";
+
+import "tesla_api/protobuf/energy_device/v1/authorized_client_type.proto";
+import "tesla_api/protobuf/energy_device/v1/authorized_key_type.proto";
+
+message AuthorizationAPIAddAuthorizedClientRequest {
+  AuthorizedClientType type               = 1;
+  string description                      = 2;
+  AuthorizedKeyType key_type              = 3;
+  bytes public_key                        = 4;
+}

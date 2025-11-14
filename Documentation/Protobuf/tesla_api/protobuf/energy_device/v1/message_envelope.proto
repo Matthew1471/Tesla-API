@@ -6,6 +6,7 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "MessageEnvelope";
 
+import "tesla_api/protobuf/energy_device/v1/authorization_messages.proto";
 import "tesla_api/protobuf/energy_device/v1/common_messages.proto";
 import "tesla_api/protobuf/energy_device/v1/delivery_channel.proto";
 import "tesla_api/protobuf/energy_device/v1/participant.proto";
@@ -22,7 +23,7 @@ message MessageEnvelope {
     //WCMessages wc                       = 6;
     //NeurioMeterMessages neuriometer     = 9;
     //EnergySiteNetMessages energysitenet = 10;
-    //AuthorizationMessages authorization = 12;
+    AuthorizationMessages authorization = 12;
     //FileStoreMessages filestore         = 15;
     //GraphQLMessages graphql             = 16;
   }

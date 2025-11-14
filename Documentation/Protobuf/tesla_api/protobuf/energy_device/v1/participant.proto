@@ -6,15 +6,15 @@ option go_package = "github.com/teslamotors/energy_device/pkg/protocol/protobuf/
 option java_package = "com.tesla.generated.energy_device.v1";
 option java_outer_classname = "Participant";
 
-import "tesla_api/protobuf/energy_device/v1/authorized_client.proto";
+import "tesla_api/protobuf/energy_device/v1/authorized_client_type.proto";
 import "tesla_api/protobuf/energy_device/v1/local_participant.proto";
 import "tesla_api/protobuf/energy_device/v1/tesla_service.proto";
 
 message Participant {
   oneof id {
-    string din                         = 1; // Device Identification Number (DIN)
-    TeslaService tesla_service         = 2;
-    LocalParticipant local             = 3;
-    AuthorizedClient authorized_client = 4;
+    string din                             = 1; // Device Identification Number (DIN)
+    TeslaService tesla_service             = 2;
+    LocalParticipant local                 = 3;
+    AuthorizedClientType authorized_client = 4;
   }
 }
