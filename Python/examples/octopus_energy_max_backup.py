@@ -285,7 +285,7 @@ def get_or_update_octopus_energy_device_id(configuration, octopus_energy):
 
     variables = {'accountNumber': octopus_configuration.get('account_number')}
 
-    # Request the flexPlannedDispatches.
+    # Request the devices.
     response = octopus_energy.api_call(query, variables)
 
     # Can this be parsed.
