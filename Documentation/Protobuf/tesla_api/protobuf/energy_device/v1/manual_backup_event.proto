@@ -9,5 +9,5 @@ option java_outer_classname = "ManualBackupEvent";
 import "tesla_api/protobuf/energy_device/v1/control_event_scheduling_info.proto";
 
 message ManualBackupEvent {
-  ControlEventSchedulingInfo sheduling_info = 1;
+  ControlEventSchedulingInfo scheduling_info = 1;
 }

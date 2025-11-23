@@ -3,9 +3,9 @@ syntax = "proto3";
 package tesla.proto.common.v1;
 
 option go_package = "github.com/teslamotors/vehicle_command/pkg/protocol/protobuf/common/";
-option java_package = "com.tesla.generated.common";
+option java_package = "com.tesla.generated.common.v1";
 option java_outer_classname = "UUIDv4";
 
 enum UUIDv4 {
-  string text = 1;
+  text = 1;
 }
