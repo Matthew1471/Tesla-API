@@ -15,6 +15,7 @@ Set-Location (Join-Path $driveLetter "Documentation\Protobuf")
 # Define proto files as an array.
 $protoFiles = @(
     # Initial release.
+    "tesla_api\protobuf\energy\command\v1\*.proto",
     "tesla_api\protobuf\energy_device\v1\*.proto",
     "tesla_api\protobuf\signatures\*.proto",
     "tesla_api\protobuf\universal_message\v1\*.proto"

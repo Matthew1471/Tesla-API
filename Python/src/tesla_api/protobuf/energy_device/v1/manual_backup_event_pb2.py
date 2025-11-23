@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from tesla_api.protobuf.energy_device.v1 import control_event_scheduling_info_pb2 as tesla__api_dot_protobuf_dot_energy__device_dot_v1_dot_control__event__scheduling__info__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n=tesla_api/protobuf/energy_device/v1/manual_backup_event.proto\x12\x1ctesla.proto.energy_device.v1\x1aGtesla_api/protobuf/energy_device/v1/control_event_scheduling_info.proto\"e\n\x11ManualBackupEvent\x12P\n\x0esheduling_info\x18\x01 \x01(\x0b\x32\x38.tesla.proto.energy_device.v1.ControlEventSchedulingInfoB\x85\x01\n$com.tesla.generated.energy_device.v1B\x11ManualBackupEventZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n=tesla_api/protobuf/energy_device/v1/manual_backup_event.proto\x12\x1ctesla.proto.energy_device.v1\x1aGtesla_api/protobuf/energy_device/v1/control_event_scheduling_info.proto\"f\n\x11ManualBackupEvent\x12Q\n\x0fscheduling_info\x18\x01 \x01(\x0b\x32\x38.tesla.proto.energy_device.v1.ControlEventSchedulingInfoB\x85\x01\n$com.tesla.generated.energy_device.v1B\x11ManualBackupEventZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,5 +34,5 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n$com.tesla.generated.energy_device.v1B\021ManualBackupEventZJgithub.com/teslamotors/energy_device/pkg/protocol/protobuf/energydevice/v1'
   _globals['_MANUALBACKUPEVENT']._serialized_start=168
-  _globals['_MANUALBACKUPEVENT']._serialized_end=269
+  _globals['_MANUALBACKUPEVENT']._serialized_end=270
 # @@protoc_insertion_point(module_scope)

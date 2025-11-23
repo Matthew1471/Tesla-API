@@ -40,6 +40,7 @@
     <Compile Include="src\tesla_api\octopus_energy\__init__.py" />
     <Compile Include="src\tesla_api\octopus_energy\api.py" />
     <Compile Include="src\tesla_api\protobuf\__init__.py" />
+    <Compile Include="src\tesla_api\protobuf\energy\command\v1\identifier_type_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\accepted_package_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\accumulated_energy_pb2.py" />
     <Compile Include="src\tesla_api\protobuf\energy_device\v1\alert_log_pb2.py" />
@@ -208,6 +209,9 @@
     <Folder Include="src\tesla_api\local\" />
     <Folder Include="src\tesla_api\octopus_energy\" />
     <Folder Include="src\tesla_api\protobuf\" />
+    <Folder Include="src\tesla_api\protobuf\energy\" />
+    <Folder Include="src\tesla_api\protobuf\energy\command\" />
+    <Folder Include="src\tesla_api\protobuf\energy\command\v1\" />
     <Folder Include="src\tesla_api\protobuf\energy_device\" />
     <Folder Include="src\tesla_api\protobuf\energy_device\v1\" />
     <Folder Include="src\tesla_api\protobuf\signatures\" />
