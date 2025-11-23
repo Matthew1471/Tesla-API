@@ -778,12 +778,16 @@ def main():
 
     # Get current Max Backup status.
     max_backup_until = get_max_backup_until(configuration, private_key, public_key_bytes, gateway_din)
+
+    # Print current Max Backup status.
     if max_backup_until is None:
-        print('Max Backup: Currently Inactive')
+        status = 'Currently Inactive'
     elif current_dt.timestamp() < max_backup_until:
-        print(f'Max Backup: Active Until {datetime.datetime.fromtimestamp(max_backup_until)}')
+        status = f'Active Until {datetime.datetime.fromtimestamp(max_backup_until)}'
     else:
-        print(f'Max Backup: Expired At {datetime.datetime.fromtimestamp(max_backup_until)}')
+        status = f'Expired At {datetime.datetime.fromtimestamp(max_backup_until)}'
+
+    print(f'Max Backup: {status}')
 
     # Default: no planned dispatch.
     planned_dispatch_until = None
@@ -797,7 +801,7 @@ def main():
             start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
             end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
             print(
-                f'{start} -> {end} '
+                f' * {start} -> {end} '
                 f'({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})'
             )
 
@@ -809,26 +813,20 @@ def main():
         print()
 
     # Determine whether to start, reset or stop Max Backup.
-    should_start_max_backup = (
-        # We are in a planned dispatch time and Max Backup is not currently set.
-        planned_dispatch_until and max_backup_until is None
-    )
 
+    # We are in a planned dispatch time and Max Backup is not currently set.
+    should_start_max_backup = planned_dispatch_until and not max_backup_until
+
+    # We are in a planned dispatch time and Max Backup is currently set
+    # but the dispatch times have changed.
     should_reset_max_backup = (
-        # We are in a planned dispatch time.
-        planned_dispatch_until
-
-        # And Max Backup is currently set but the dispatch times have changed.
-        and (max_backup_until is not None and max_backup_until != planned_dispatch_until)
+        planned_dispatch_until 
+        and max_backup_until 
+        and max_backup_until != planned_dispatch_until
     )
 
-    should_stop_max_backup = (
-        # We are not in a planned dispatch time.
-        not planned_dispatch_until
-
-        # But Max Backup is currently set.
-        and max_backup_until is not None
-    )
+    # We are not in a planned dispatch time but Max Backup is currently set.
+    should_stop_max_backup = not planned_dispatch_until and max_backup_until
 
     # Update Tesla® Gateway.
     if should_start_max_backup:
