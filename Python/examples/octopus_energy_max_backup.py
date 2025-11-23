@@ -887,7 +887,7 @@ def main():
 
     # We are within a 30 minute smart charging slot.
     if planned_dispatch_until:
-        # Round up to the next 30-minute boundary
+        # Round up to the next 30-minute boundary.
         HALF_HOUR_IN_SECONDS = 30 * 60
         time_to_next_boundary = HALF_HOUR_IN_SECONDS - (current_ts % HALF_HOUR_IN_SECONDS)
         configuration['tesla']['max_backup_backoff'] = current_ts + time_to_next_boundary
@@ -896,7 +896,7 @@ def main():
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
             json.dump(configuration, json_file, indent=4)
     # Remove any existing reference to a smart charging slot.
-    elif configuration.get("tesla", {}).get('max_backup_backoff'):
+    elif backoff_ts:
         # Remove max_backup_backoff from the config.
         configuration['tesla'].pop('max_backup_backoff', None)
 
