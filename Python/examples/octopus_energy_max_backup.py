@@ -651,12 +651,12 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
     else:
         raise ValueError('Unknown SEND_VIA method set.')
 
-def build_start_message(current_ts, planned_dispatch_until):
+def build_start_message(current_ts, duration_seconds):
     # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
     request = teg_api_schedule_manual_backup_event_request_pb2.TEGAPIScheduleManualBackupEventRequest(
         scheduling_info=control_event_scheduling_info_pb2.ControlEventSchedulingInfo(
             start_time=Timestamp(seconds=current_ts),
-            duration_seconds=planned_dispatch_until-current_ts,
+            duration_seconds=duration_seconds,
             priority=(1 << 64) - 1 # MAX_UINT64
         )
     )
@@ -781,7 +781,8 @@ def main():
         planned_dispatch_until
 
         # And Max Backup is not currently active or has since expired.
-        and (max_backup_until is None or max_backup_until < current_ts)
+        # We add 1 second to account for clock drift.
+        and (max_backup_until is None or max_backup_until+1 < current_ts)
     )
 
     should_reset_max_backup = (
@@ -806,11 +807,16 @@ def main():
         # Notify the user.
         print('Action: Start Max Backup!\n')
 
-        # Get the TEG Message.
-        message = build_start_message(current_ts, planned_dispatch_until)
+        # Calculate how many seconds of Max Backup.
+        duration_seconds = planned_dispatch_until-current_ts
 
-        # Get, sign and send a routable message.
-        send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
+        # We cannot request a Max Backup less than 60 seconds.
+        if duration_seconds >= 60:
+            # Get the TEG Message.
+            message = build_start_message(current_ts, duration_seconds)
+
+            # Get, sign and send a routable message.
+            send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
 
         # Update configuration file.
         update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
@@ -818,11 +824,19 @@ def main():
         # Notify the user.
         print('Action: Reset Max Backup!\n')
 
-        # Get the messages to send.
-        messages = [
-            build_stop_message(),
-            build_start_message(current_ts, planned_dispatch_until)
-        ]
+        # Calculate how many seconds of Max Backup.
+        duration_seconds = planned_dispatch_until-current_ts
+
+        # We cannot request a Max Backup less than 60 seconds.
+        if duration_seconds >= 60:
+            # Get the messages to send.
+            messages = [
+                build_stop_message(),
+                build_start_message(current_ts, duration_seconds)
+            ]
+        else:
+            # Get the stop message to send.
+            messages = [ build_stop_message() ]
 
         # Process each message.
         for message in messages:
