@@ -66,12 +66,16 @@ from tesla_api.local.gateway import Gateway
 from tesla_api.cloud.owner_api import OwnerAPI
 
 # All the protobuf messages and types are in these packages.
+from tesla_api.protobuf.energy.command.v1 import (
+   identifier_type_pb2
+)
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_type_pb2,
     control_event_scheduling_info_pb2,
     delivery_channel_pb2,
     message_envelope_pb2,
     participant_pb2,
+    teg_api_get_backup_events_request_pb2,
     teg_api_cancel_manual_backup_event_request_pb2,
     teg_api_schedule_manual_backup_event_request_pb2,
     teg_messages_pb2
@@ -557,7 +561,7 @@ def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     # Return the three components in TLV format.
     return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
-def parse_message(message):
+def print_message(message):
     # Step 1: Parse the top-level RoutableMessage message.
     routable_message = routable_message_pb2.RoutableMessage()
     routable_message.ParseFromString(message)
@@ -574,41 +578,51 @@ def parse_message(message):
         f'{json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)}\n'
     )
 
-def update_tesla_max_backup_until_configuration(configuration, max_backup_until):
-    """
-    Update the Tesla® energy site max_backup_until configuration and save it to a JSON file.
+def get_max_backup_until(configuration, private_key, public_key_bytes, gateway_din):
+    # Get, sign and send a routable message.
+    response = send_teg_message(
+        configuration=configuration,
+        private_key=private_key,
+        public_key_bytes=public_key_bytes,
+        gateway_din=gateway_din,
+        teg_message=build_get_message(),
+        debug=False
+    )
 
-    This function adds the provided max_backup_until under the 'tesla' key,
-    updates the JSON file with the modified configuration.
+    # Parse the response into protobuf objects.
+    if SEND_VIA == 'LocalAPI':
+        routable_message = routable_message_pb2.RoutableMessage()
+        routable_message.ParseFromString(response)
+        envelope_bytes = routable_message.protobuf_message_as_bytes
+    elif SEND_VIA == 'OwnerAPI':
+        envelope_bytes = base64.b64decode(response['response']['message_envelope_as_bytes'])
+    else:
+        raise ValueError('Unknown SEND_VIA method set.')
 
-    Args:
-        configuration (dict): The main configuration dictionary to be updated.
-        max_backup_until (int): The new max_backup_until value.
+    message_envelope = message_envelope_pb2.MessageEnvelope()
+    message_envelope.ParseFromString(envelope_bytes)
 
-    Returns:
-        None
+    # Get a reference to the backup_events_response.
+    backup_events_response = message_envelope.teg.get_backup_events_response
 
-    Raises:
-        IOError: If there is an error while writing to the JSON file.
-    """
+    # If a manual backup event is currently set, return the end time.
+    if backup_events_response.HasField('manual_backup_event'):
+        scheduling_info = backup_events_response.manual_backup_event.scheduling_info
+        return scheduling_info.start_time.seconds + scheduling_info.duration_seconds
+    else:
+        return None
 
-    # Add or update the max_backup_until in the configuration.
-    configuration['tesla']['max_backup_until'] = max_backup_until
-
-    # Update the file to include the modified max_backup_until.
-    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
-        json.dump(configuration, json_file, indent=4)
-
-def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, teg_message):
+def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
     # Get the signed routable message.
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
 
     # Print to console the routable message.
-    print(
-        'Request:\n'
-        '--------\n'
-    )
-    parse_message(routable_message.SerializeToString())
+    if debug:
+        print(
+            'Request:\n'
+            '--------\n'
+        )
+        print_message(routable_message.SerializeToString())
 
     # Send the message.
     if SEND_VIA == 'LocalAPI':
@@ -617,11 +631,14 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
         response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
         # Print out the server's response.
-        print(
-            'Response:\n'
-            '---------\n'
-        )
-        parse_message(response)
+        if debug:
+            print(
+                'Response:\n'
+                '---------\n'
+            )
+            print_message(response)
+
+        return response
     elif SEND_VIA == 'OwnerAPI':
         # Get an authenticated instance of the Tesla® Owner API.
         owner_api = get_tesla_api_session(configuration)
@@ -636,20 +653,34 @@ def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, 
             json={
                 'data': {
                     'routable_message': base64.b64encode(routable_message.SerializeToString()).decode("ascii"),
-                    'identifier_type': 1,
+                    'identifier_type': identifier_type_pb2.IDENTIFIER_TYPE_GATEWAY_DIN,
                     'target_id': gateway_din
                 }
             }
         )
 
         # Print out the server's response.
-        print(
-            'Response:\n'
-            '---------\n'
-            f'{json.dumps(response, indent=4)}'
-        )
+        if debug:
+            print(
+                'Response:\n'
+                '---------\n'
+                f'{json.dumps(response, indent=4)}'
+            )
+
+        return response
     else:
         raise ValueError('Unknown SEND_VIA method set.')
+
+def build_get_message():
+    # Build a Tesla Energy Gateway (TEG) API get backup events request.
+    request = teg_api_get_backup_events_request_pb2.TEGAPIGetBackupEventsRequest()
+
+    # Build a Tesla Energy Gateway (TEG) message containing the get_backup_events_request.
+    teg_message = teg_messages_pb2.TEGMessages(
+        get_backup_events_request=request
+    )
+
+    return teg_message
 
 def build_start_message(current_ts, duration_seconds):
     # Build a Tesla Energy Gateway (TEG) API schedule manual backup event request.
@@ -746,11 +777,13 @@ def main():
     octopus_planned_dispatches = query_octopus_energy_graphql(octopus_energy, device_id)
 
     # Get current Max Backup status.
-    max_backup_until = configuration.get('tesla', {}).get('max_backup_until')
-    if max_backup_until is not None and current_dt.timestamp() < max_backup_until:
+    max_backup_until = get_max_backup_until(configuration, private_key, public_key_bytes, gateway_din)
+    if max_backup_until is None:
+        print('Max Backup: Currently Inactive')
+    elif current_dt.timestamp() < max_backup_until:
         print(f'Max Backup: Active Until {datetime.datetime.fromtimestamp(max_backup_until)}')
     else:
-        print('Max Backup: Currently Inactive')
+        print(f'Max Backup: Expired At {datetime.datetime.fromtimestamp(max_backup_until)}')
 
     # Default: no planned dispatch.
     planned_dispatch_until = None
@@ -777,19 +810,15 @@ def main():
 
     # Determine whether to start, reset or stop Max Backup.
     should_start_max_backup = (
-        # We are in a planned dispatch time.
-        planned_dispatch_until
-
-        # And Max Backup is not currently active or has since expired.
-        # We add 1 second to account for clock drift.
-        and (max_backup_until is None or max_backup_until+1 < current_ts)
+        # We are in a planned dispatch time and Max Backup is not currently set.
+        planned_dispatch_until and max_backup_until is None
     )
 
     should_reset_max_backup = (
         # We are in a planned dispatch time.
         planned_dispatch_until
 
-        # And Max Backup is currently active but the dispatch times have changed.
+        # And Max Backup is currently set but the dispatch times have changed.
         and (max_backup_until is not None and max_backup_until != planned_dispatch_until)
     )
 
@@ -797,9 +826,8 @@ def main():
         # We are not in a planned dispatch time.
         not planned_dispatch_until
 
-        # But Max Backup is currently active.
-        # And the current time is still within the configured Max Backup expiration time.
-        and max_backup_until is not None and current_ts < max_backup_until
+        # But Max Backup is currently set.
+        and max_backup_until is not None
     )
 
     # Update Tesla® Gateway.
@@ -812,14 +840,14 @@ def main():
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
-            # Get the TEG Message.
-            message = build_start_message(current_ts, duration_seconds)
-
             # Get, sign and send a routable message.
-            send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
-
-        # Update configuration file.
-        update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
+            send_teg_message(
+                configuration=configuration,
+                private_key=private_key,
+                public_key_bytes=public_key_bytes,
+                gateway_din=gateway_din,
+                teg_message=build_start_message(current_ts, duration_seconds)
+            )
     elif should_reset_max_backup:
         # Notify the user.
         print('Action: Reset Max Backup!\n')
@@ -842,21 +870,18 @@ def main():
         for message in messages:
             # Get, sign and send a routable message.
             send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
-
-        # Update configuration file.
-        update_tesla_max_backup_until_configuration(configuration, planned_dispatch_until)
     elif should_stop_max_backup:
         # Notify the user.
         print('Action: Stop Max Backup!\n')
 
-        # Get the TEG Message.
-        message = build_stop_message()
-
         # Get, sign and send a routable message.
-        send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
-
-        # Update configuration file.
-        update_tesla_max_backup_until_configuration(configuration, None)
+        send_teg_message(
+            configuration=configuration,
+            private_key=private_key,
+            public_key_bytes=public_key_bytes,
+            gateway_din=gateway_din,
+            teg_message=build_stop_message()
+        )
     else:
         print('Action: Nothing to do.\n')
 
