@@ -749,8 +749,8 @@ def main():
         sys.exit(0)
 
     # Abort if currently within a 30 minute smart charging slot.
-    backoff_ts = configuration.get('tesla', {}).get('max_backup_backoff')
-    if backoff_ts is not None and current_ts < backoff_ts:
+    backoff_until = configuration.get('tesla', {}).get('max_backup_backoff')
+    if backoff_until is not None and current_ts < backoff_until:
         print('Action: Nothing to do (currently in a smart charging slot).\n')
         sys.exit(0)
 
@@ -883,7 +883,7 @@ def main():
     else:
         print('Action: Nothing to do.\n')
 
-    # We are within a 30 minute smart charging slot.
+    # We are now within a 30 minute smart charging slot.
     if planned_dispatch_until:
         # Round up to the next 30-minute boundary.
         HALF_HOUR_IN_SECONDS = 30 * 60
@@ -893,8 +893,8 @@ def main():
         # Update the file to include the modified max_backup_backoff.
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
             json.dump(configuration, json_file, indent=4)
-    # Remove any existing reference to a smart charging slot.
-    elif backoff_ts:
+    # Or we are outside of one; remove any existing reference to a smart charging slot.
+    elif backoff_until:
         # Remove max_backup_backoff from the config.
         configuration['tesla'].pop('max_backup_backoff', None)
 
