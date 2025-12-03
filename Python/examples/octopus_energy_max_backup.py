@@ -824,7 +824,10 @@ def main():
             #  - this block overlaps/extends the existing planned_dispatch_until.
             if (
                 start <= current_dt < end
-                or (planned_dispatch_until and start <= planned_dispatch_until < end)
+                or (
+                    planned_dispatch_until
+                    and start <= planned_dispatch_until < end
+                )
             ):
                 # Align any end time to a 30-minute boundary.
                 planned_dispatch_until = align_to_half_hour(int(end.timestamp()))
