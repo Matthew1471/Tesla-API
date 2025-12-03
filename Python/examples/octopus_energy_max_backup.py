@@ -612,6 +612,20 @@ def get_max_backup_until(configuration, private_key, public_key_bytes, gateway_d
     else:
         return None
 
+def align_to_half_hour(ts: int) -> int:
+    """
+    Align the timestamp (in seconds) to a 30-minute boundary.
+    If ts is already aligned, it is returned unchanged; otherwise it is moved forward.
+    """
+    HALF_HOUR_IN_SECONDS = 30 * 60
+
+    remainder = ts % HALF_HOUR_IN_SECONDS
+
+    if remainder == 0:
+        return ts
+
+    return ts + (HALF_HOUR_IN_SECONDS - remainder)
+
 def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
     # Get the signed routable message.
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
@@ -805,9 +819,15 @@ def main():
                 f'({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})'
             )
 
-            # Is the current date and time within this planned dispatch period.
-            if start < current_dt < end:
-                planned_dispatch_until = int(end.timestamp())
+            # Set planned_dispatch_until if:
+            #  - the current time is within this planned dispatch period, OR
+            #  - this block overlaps/extends the existing planned_dispatch_until.
+            if (
+                start <= current_dt < end
+                or (planned_dispatch_until and start <= planned_dispatch_until < end)
+            ):
+                # Align any end time to a 30-minute boundary.
+                planned_dispatch_until = align_to_half_hour(int(end.timestamp()))
 
         # Output a blank line.
         print()
@@ -885,10 +905,8 @@ def main():
 
     # We are now within a 30 minute smart charging slot.
     if planned_dispatch_until:
-        # Round up to the next 30-minute boundary.
-        HALF_HOUR_IN_SECONDS = 30 * 60
-        time_to_next_boundary = HALF_HOUR_IN_SECONDS - (current_ts % HALF_HOUR_IN_SECONDS)
-        configuration['tesla']['max_backup_backoff'] = current_ts + time_to_next_boundary
+        # Align the current time to a 30-minute boundary.
+        configuration['tesla']['max_backup_backoff'] = align_to_half_hour(current_ts)
 
         # Update the file to include the modified max_backup_backoff.
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
