@@ -840,8 +840,8 @@ def main():
     # We are in a planned dispatch time and Max Backup is currently set
     # but the dispatch times have changed.
     should_reset_max_backup = (
-        planned_dispatch_until 
-        and max_backup_until 
+        planned_dispatch_until
+        and max_backup_until
         and max_backup_until != planned_dispatch_until
     )
 
@@ -887,7 +887,13 @@ def main():
         # Process each message.
         for message in messages:
             # Get, sign and send a routable message.
-            send_teg_message(configuration, private_key, public_key_bytes, gateway_din, message)
+            send_teg_message(
+                configuration=configuration,
+                private_key=private_key,
+                public_key_bytes=public_key_bytes,
+                gateway_din=gateway_din,
+                message=message
+            )
     elif should_stop_max_backup:
         # Notify the user.
         print('Action: Stop Max Backup!\n')
