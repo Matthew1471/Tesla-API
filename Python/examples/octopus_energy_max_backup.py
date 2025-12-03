@@ -619,12 +619,12 @@ def align_to_half_hour(ts: int) -> int:
     """
     HALF_HOUR_IN_SECONDS = 30 * 60
 
-    remainder = ts % HALF_HOUR_IN_SECONDS
+    seconds_past_half_hour = ts % HALF_HOUR_IN_SECONDS
 
-    if remainder == 0:
+    if seconds_past_half_hour == 0:
         return ts
 
-    return ts + (HALF_HOUR_IN_SECONDS - remainder)
+    return ts + (HALF_HOUR_IN_SECONDS - seconds_past_half_hour)
 
 def send_teg_message(configuration, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
     # Get the signed routable message.
