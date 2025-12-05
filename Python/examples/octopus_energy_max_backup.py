@@ -894,7 +894,7 @@ def main():
                 private_key=private_key,
                 public_key_bytes=public_key_bytes,
                 gateway_din=gateway_din,
-                message=message
+                teg_message=message
             )
     elif should_stop_max_backup:
         # Notify the user.
