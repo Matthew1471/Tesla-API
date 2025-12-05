@@ -856,7 +856,7 @@ def main():
         print('Action: Start Max Backup!\n')
 
         # Calculate how many seconds of Max Backup.
-        duration_seconds = planned_dispatch_until-current_ts
+        duration_seconds = planned_dispatch_until - current_ts
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
@@ -873,7 +873,7 @@ def main():
         print('Action: Reset Max Backup!\n')
 
         # Calculate how many seconds of Max Backup.
-        duration_seconds = planned_dispatch_until-current_ts
+        duration_seconds = planned_dispatch_until - current_ts
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
