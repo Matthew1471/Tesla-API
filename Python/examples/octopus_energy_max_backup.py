@@ -745,20 +745,15 @@ def main():
         configuration = json.load(json_file)
 
     # Get a reference to the current datetime and the timestamp.
-    current_dt = datetime.datetime.now().astimezone()
+    current_dt = datetime.datetime.now()
     current_ts = int(current_dt.timestamp())
 
     # Output the current time.
-    print(f'Current Time: {current_dt}')
+    print(f'Current Time: {current_dt.astimezone().strftime("%Y-%m-%d %H:%M:%S%:z")}')
 
-    # Abort if currently within the regular off-peak time.
-    off_peak = configuration.get('octopus_energy', {}).get('off_peak', {})
-    start = datetime.datetime.strptime(off_peak.get('Start', '23:30'), "%H:%M").time()
-    end = datetime.datetime.strptime(off_peak.get('End', '05:30'), "%H:%M").time()
-
-    # Check if current time is within the regular overnight off-peak window.
+    # Exit if the current local time is within the regular overnight off‑peak window.
     current_time = current_dt.time()
-    if current_time >= start or current_time < end:
+    if current_time >= datetime.time(23, 30) or current_time < datetime.time(5, 30):
         print('Action: Nothing to do (currently in regular off-peak window).\n')
         sys.exit(0)
 
@@ -796,7 +791,7 @@ def main():
     # Print current Max Backup status.
     if max_backup_until is None:
         status = 'Currently Inactive'
-    elif current_dt.timestamp() < max_backup_until:
+    elif current_ts < max_backup_until:
         status = f'Active Until {datetime.datetime.fromtimestamp(max_backup_until)}'
     else:
         status = f'Expired At {datetime.datetime.fromtimestamp(max_backup_until)}'
@@ -812,25 +807,29 @@ def main():
 
         # Evaluate planned dispatches.
         for planned_dispatch in octopus_planned_dispatches:
-            start = datetime.datetime.fromisoformat(planned_dispatch['start']).astimezone()
-            end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
+            start = datetime.datetime.fromisoformat(planned_dispatch['start'])
+            end = datetime.datetime.fromisoformat(planned_dispatch['end'])
+
             print(
                 f' * {start} -> {end} '
                 f'({planned_dispatch["energyAddedKwh"]} kW via {planned_dispatch["type"].title()})'
             )
 
+            start_ts = start.timestamp()
+            end_ts = end.timestamp()
+
             # Set planned_dispatch_until if:
             #  - the current time is within this planned dispatch period, OR
             #  - this block overlaps/extends the existing planned_dispatch_until.
             if (
-                start <= current_dt < end
+                start_ts <= current_ts < end_ts
                 or (
                     planned_dispatch_until
-                    and start.timestamp() <= planned_dispatch_until < end.timestamp()
+                    and start_ts <= planned_dispatch_until < end_ts
                 )
             ):
                 # Align any end time to a 30-minute boundary.
-                planned_dispatch_until = align_to_half_hour(int(end.timestamp()))
+                planned_dispatch_until = align_to_half_hour(int(end_ts))
 
         # Output a blank line.
         print()
