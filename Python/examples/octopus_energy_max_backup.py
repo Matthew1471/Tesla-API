@@ -816,7 +816,7 @@ def main():
             end = datetime.datetime.fromisoformat(planned_dispatch['end']).astimezone()
             print(
                 f' * {start} -> {end} '
-                f'({planned_dispatch['energyAddedKwh']} kW via {planned_dispatch['type'].title()})'
+                f'({planned_dispatch["energyAddedKwh"]} kW via {planned_dispatch["type"].title()})'
             )
 
             # Set planned_dispatch_until if:
@@ -826,7 +826,7 @@ def main():
                 start <= current_dt < end
                 or (
                     planned_dispatch_until
-                    and start <= planned_dispatch_until < end
+                    and start.timestamp() <= planned_dispatch_until < end.timestamp()
                 )
             ):
                 # Align any end time to a 30-minute boundary.
