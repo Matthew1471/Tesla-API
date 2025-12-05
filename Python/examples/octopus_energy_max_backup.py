@@ -745,11 +745,11 @@ def main():
         configuration = json.load(json_file)
 
     # Get a reference to the current datetime and the timestamp.
-    current_dt = datetime.datetime.now()
+    current_dt = datetime.datetime.now().replace(microsecond=0)
     current_ts = int(current_dt.timestamp())
 
     # Output the current time.
-    print(f'Current Time: {current_dt.astimezone().strftime("%Y-%m-%d %H:%M:%S%:z")}')
+    print(f'Current Time: {current_dt.astimezone()}')
 
     # Exit if the current local time is within the regular overnight off‑peak window.
     current_time = current_dt.time()
@@ -792,9 +792,9 @@ def main():
     if max_backup_until is None:
         status = 'Currently Inactive'
     elif current_ts < max_backup_until:
-        status = f'Active Until {datetime.datetime.fromtimestamp(max_backup_until)}'
+        status = f'Active Until {datetime.datetime.fromtimestamp(max_backup_until).astimezone()}'
     else:
-        status = f'Expired At {datetime.datetime.fromtimestamp(max_backup_until)}'
+        status = f'Expired At {datetime.datetime.fromtimestamp(max_backup_until).astimezone()}'
 
     print(f'Max Backup: {status}')
 
@@ -815,8 +815,8 @@ def main():
                 f'({planned_dispatch["energyAddedKwh"]} kW via {planned_dispatch["type"].title()})'
             )
 
-            start_ts = start.timestamp()
-            end_ts = end.timestamp()
+            start_ts = int(start.timestamp())
+            end_ts = int(end.timestamp())
 
             # Set planned_dispatch_until if:
             #  - the current time is within this planned dispatch period, OR
@@ -829,7 +829,7 @@ def main():
                 )
             ):
                 # Align any end time to a 30-minute boundary.
-                planned_dispatch_until = align_to_half_hour(int(end_ts))
+                planned_dispatch_until = align_to_half_hour(end_ts)
 
         # Output a blank line.
         print()
