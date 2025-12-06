@@ -146,7 +146,7 @@ def get_octopus_energy_api_session(configuration):
     It initialises the Octopus API wrapper for subsequent interactions.
 
     Args:
-        credentials (dict): A dictionary containing the required credentials.
+        configuration (dict): A dictionary containing the required credentials.
 
     Returns:
         OctopusEnergy: An initialised API wrapper object for interacting with Octopus Energy®.
@@ -168,7 +168,7 @@ def get_octopus_energy_api_session(configuration):
     current_token = token_configuration.get('current')
 
     # Do we have a valid JSON Web Token (JWT) to be able to use the service?
-    if not (current_token and OctopusEnergy.check_token_valid(current_token)):
+    if not (current_token and OctopusEnergy.check_token_valid(current_token, leeway=-5)):
         # It is not valid so clear it.
         token_configuration['current'] = None
 
@@ -221,6 +221,7 @@ def query_octopus_energy_graphql(octopus_energy, device_id):
     Queries the Octopus Energy® API for the Flex planned dispatch data.
 
     Args:
+        octopus_energy(OctopusEnergy): An instantiated OctopusEnergy object for querying data.
         device_id (str): The Octopus Energy® Flex device ID to query.
 
     Returns:
@@ -378,7 +379,7 @@ def get_tesla_api_session(configuration):
     It initialises the Owner API wrapper for subsequent interactions.
 
     Args:
-        credentials (dict): A dictionary containing the required credentials.
+        configuration (dict): A dictionary containing the required credentials.
 
     Returns:
         OwnerAPI: An initialised API wrapper object for interacting with Tesla® Owner API.
@@ -752,8 +753,9 @@ def main():
     print(f'Current Time: {current_dt.astimezone()}')
 
     # Exit if the current local time is within the regular overnight off‑peak window.
+    # We still need to run 1 minute before the end of off-peak to evaluate any ongoing dispatches.
     current_time = current_dt.time()
-    if current_time >= datetime.time(23, 30) or current_time < datetime.time(5, 30):
+    if current_time >= datetime.time(23, 30) or current_time < datetime.time(5, 29):
         print('Action: Nothing to do (currently in regular off-peak window).\n')
         sys.exit(0)
 
@@ -855,7 +857,7 @@ def main():
         # Notify the user.
         print('Action: Start Max Backup!\n')
 
-        # Calculate how many seconds of Max Backup.
+        # Calculate how many seconds of Max Backup are required.
         duration_seconds = planned_dispatch_until - current_ts
 
         # We cannot request a Max Backup less than 60 seconds.
@@ -872,7 +874,7 @@ def main():
         # Notify the user.
         print('Action: Reset Max Backup!\n')
 
-        # Calculate how many seconds of Max Backup.
+        # Calculate how many seconds of Max Backup are required.
         duration_seconds = planned_dispatch_until - current_ts
 
         # We cannot request a Max Backup less than 60 seconds.

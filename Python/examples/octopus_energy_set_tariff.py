@@ -94,7 +94,7 @@ def get_octopus_energy_api_session(configuration):
     It initialises the Octopus API wrapper for subsequent interactions.
 
     Args:
-        credentials (dict): A dictionary containing the required credentials.
+        configuration (dict): A dictionary containing the required credentials.
 
     Returns:
         OctopusEnergy: An initialised API wrapper object for interacting with Octopus Energy®.
@@ -116,7 +116,7 @@ def get_octopus_energy_api_session(configuration):
     current_token = token_configuration.get('current')
 
     # Do we have a valid JSON Web Token (JWT) to be able to use the service?
-    if not (current_token and OctopusEnergy.check_token_valid(current_token)):
+    if not (current_token and OctopusEnergy.check_token_valid(current_token, leeway=-5)):
         # It is not valid so clear it.
         token_configuration['current'] = None
 
@@ -169,6 +169,7 @@ def query_octopus_energy_graphql(octopus_energy, account_number):
     Queries the Octopus Energy® API for the tariff.
 
     Args:
+        octopus_energy(OctopusEnergy): An instantiated OctopusEnergy object for querying data.
         account_number (str): The Octopus Energy® account number to query.
 
     Returns:
@@ -332,7 +333,7 @@ def get_tesla_api_session(configuration):
     It initialises the Owner API wrapper for subsequent interactions.
 
     Args:
-        credentials (dict): A dictionary containing the required credentials.
+        configuration (dict): A dictionary containing the required credentials.
 
     Returns:
         OwnerAPI: An initialised API wrapper object for interacting with Tesla® Owner API.
