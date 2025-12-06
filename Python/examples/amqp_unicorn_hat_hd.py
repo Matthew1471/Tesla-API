@@ -458,9 +458,9 @@ class ScreenChart:
         self.maximum_watts_per_panel = maximum_watts_per_panel
         self.number_of_pixels = self.screen_width * self.screen_height
 
-    def draw_screen(self, number_of_microinverters, production, consumption):
+    def draw_screen(self, number_of_microinverters, production, consumption, site=0):
         """
-        Draw the power production and consumption as a bar chart on the Unicorn HAT HD display.
+        Draw the power production, consumption and site as a bar chart on the Unicorn HAT HD display.
 
         Args:
             number_of_microinverters (int):
@@ -468,6 +468,8 @@ class ScreenChart:
             production (float):
                 Power production value in watts.
             consumption (float):
+                Power consumption value in watts.
+            site (float, optional):
                 Power consumption value in watts.
 
         Returns:
@@ -481,36 +483,37 @@ class ScreenChart:
         if production > total_capacity:
             raise ValueError(f'Production ({production}) exceeds the total capacity ({total_capacity}), check maximum_watts_per_panel setting.')
 
-        # Have we got more consumption than total production capacity?
-        if consumption > total_capacity:
-            # Set the total capacity to be the current consumption.
-            total_capacity = consumption
+        # Set the total capacity to be the highest of production capacity, consumption or site.
+        total_capacity = max(total_capacity, consumption, site)
 
-        # Calculate how many watts each pixel represents.
+        # Calculate how many watts each pixel of total capacity represents.
         watts_per_pixel = total_capacity / self.number_of_pixels
-
-        # Calculate how many pixels of production and consumption we have.
-        number_of_production_pixels = production / watts_per_pixel
-        number_of_consumption_pixels = consumption / watts_per_pixel
 
         # Some common RGB colours.
         red = (255, 0, 0)
         green = (0, 255, 0)
         light_green = (0, 150, 0)
+        blue = (0, 0, 255)
 
         # Add the consumption pixels.
-        pixels = [(number_of_consumption_pixels,red)]
+        pixels = [(consumption / watts_per_pixel,red)]
+
+        # Add the site pixels.
+        if site > 0:
+            pixels.append((site / watts_per_pixel,blue))
 
         # The microinverters can only support a certain continuous load.
         total_continuous_capacity = number_of_microinverters * self.watts_per_panel
 
         # Is the production exceeding the continuous output power?
         if production > total_continuous_capacity:
-            number_of_continuous_pixels = total_continuous_capacity / watts_per_pixel
-            pixels.append((number_of_continuous_pixels,green))
-            pixels.append((number_of_production_pixels,light_green))
+            # Add the continuous output power first.
+            pixels.append((total_continuous_capacity / watts_per_pixel,green))
+
+            # Add the remaining production pixels in light green.
+            pixels.append((production / watts_per_pixel,light_green))
         else:
-            pixels.append((number_of_production_pixels,green))
+            pixels.append((production / watts_per_pixel,green))
 
         # Sort the pixels (in ascending order).
         pixels.sort()
@@ -773,18 +776,13 @@ def main():
                         json_object = json.loads(body)
                         timestamp = json_object['timestamp']
 
-                        if 'state_of_energy' in json_object:
-                            state_of_energy = json_object['state_of_energy']
+                        state_of_energy = json_object.get('state_of_energy')
 
+                        # Take the cumulative values across all phases.
                         meter_readings = json_object['readings']
-
-                        if 'load' in meter_readings:
-                            # Take the cumulative values across all phases.
-                            consumption_power = meter_readings['load']['instant_power']
-
-                        if 'solar' in meter_readings:
-                            # Take the cumulative values across all phases.
-                            production_power = meter_readings['solar']['instant_power']
+                        site_power = meter_readings.get('site', {}).get('instant_power')
+                        consumption_power = meter_readings.get('load', {}).get('instant_power')
+                        production_power = meter_readings.get('solar', {}).get('instant_power')
                     else:
                         # Ran out of responses.
                         break
@@ -803,7 +801,8 @@ def main():
                     screen_chart.draw_screen(
                         number_of_microinverters=args.number_of_microinverters,
                         production=production_power,
-                        consumption=consumption_power
+                        consumption=consumption_power,
+                        site=site_power
                     )
 
                     # Pause on the last screen for 5 seconds.
