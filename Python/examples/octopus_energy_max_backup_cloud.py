@@ -61,9 +61,13 @@ from google.protobuf import json_format
 from google.protobuf.timestamp_pb2 import Timestamp
 
 # All the shared Tesla® API functions are in this package.
-from tesla_api.local.gateway import Gateway
+from tesla_api.cloud.authentication import Authentication
+from tesla_api.cloud.owner_api import OwnerAPI
 
 # All the protobuf messages and types are in these packages.
+from tesla_api.protobuf.energy.command.v1 import (
+   identifier_type_pb2
+)
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_type_pb2,
     control_event_scheduling_info_pb2,
@@ -322,6 +326,172 @@ def query_octopus_energy_graphql(octopus_energy, device_id):
     # Clean and return the response (there's an excessive amount of nesting otherwise).
     return response.get('data').get('flexPlannedDispatches')
 
+def update_tesla_token_configuration(configuration, token_response):
+    """
+    Update the Tesla® token configuration and save it to a JSON file.
+
+    This function creates a new token configuration using the provided token response,
+    adds it to the main configuration dictionary under the 'tesla' key,
+    updates the JSON file with the modified configuration, and returns the reference
+    to the new token configuration.
+
+    Args:
+        configuration (dict): The main configuration dictionary to be updated.
+        token_response (dict): The response containing the new token information.
+
+    Returns:
+        dict: The newly created token configuration dictionary.
+
+    Raises:
+        IOError: If there is an error while writing to the JSON file.
+    """
+
+    # Create a new Tesla® token_configuration.
+    token_configuration = {
+        'current': token_response.get('access_token'),
+        'refresh': token_response.get('refresh_token'),
+
+        # https://developer.tesla.com/docs/fleet-api/authentication/third-party-tokens
+        # https://techdocs.akamai.com/identity-cloud/docs/modify-token-lifetimes
+        'refresh_expiry': time.time() + 7776000
+    }
+
+    # Add the token_configuration to the configuration.
+    configuration['tesla']['token'] = token_configuration
+
+    # Update the file to include the modified token.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
+
+    # Return the reference to our new token configuration.
+    return token_configuration
+
+def get_tesla_api_session(configuration):
+    """
+    Establishes a session with the Tesla® Owner API.
+
+    This function manages the authentication process to establish a session with Tesla®.
+
+    It initialises the Owner API wrapper for subsequent interactions.
+
+    Args:
+        configuration (dict): A dictionary containing the required credentials.
+
+    Returns:
+        OwnerAPI: An initialised API wrapper object for interacting with Tesla® Owner API.
+
+    Raises:
+        ValueError: If authentication fails or if required credentials are missing.
+    """
+
+    # Get a reference just to the tesla_configuration.
+    tesla_configuration = configuration.get('tesla', {})
+
+    # Attempt to get a reference to just the token_configuration.
+    token_configuration = tesla_configuration.get('token', {})
+
+    # Instantiate the Tesla® API wrapper.
+    owner_api = OwnerAPI()
+
+    # Attempt to obtain current token.
+    current_token = token_configuration.get('current')
+
+    # Do we have a valid JSON Web Token (JWT) to be able to use the service?
+    if not (current_token and Authentication.check_token_valid(current_token)):
+        # It is not valid so clear it.
+        token_configuration['current'] = None
+
+        # Try refresh token if available and not expired.
+        refresh_token = token_configuration.get('refresh')
+        refresh_expiry = token_configuration.get('refresh_expiry')
+        if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
+            # Get a JWT from our Tesla® refresh token.
+            response = Authentication.refresh_token(refresh_token)
+
+            # Update the configuration dictionary, file and reference.
+            token_configuration = update_tesla_token_configuration(
+                configuration, response
+            )
+
+    # Do we still not have a Token?
+    if not token_configuration.get('current'):
+        # Get a JWT from our Tesla® login.
+        code_verifier, state = Authentication.authenticate()
+
+        # Ask the user for the code.
+        code = None
+        while not code:
+            user_url = input('Please enter the tesla:// URL that the login page returns after you log in:\n')
+
+            # Attempt to obtain the code.
+            code = Authentication.parse_callback(state, user_url)
+
+            # If the code does not match the expected format, tell the user to try again.
+            if not code:
+                print('Callback is incorrect, please try again.\n\n')
+
+        # Exchange the code for a token.
+        response = Authentication.get_token(code, code_verifier)
+
+        # Update the configuration dictionary, file and reference.
+        token_configuration = update_tesla_token_configuration(
+            configuration, response
+        )
+
+    # Apply the token to our Owner API instance.
+    owner_api.set_token(token_configuration.get('current'))
+
+    # Return the initialised owner_api object.
+    return owner_api
+
+def get_or_update_tesla_energy_site_id(configuration, owner_api):
+    # Get a reference to the 'tesla' section of the configuration.
+    tesla_configuration = configuration.get('tesla')
+
+    # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
+    if 'energy_site_id' in tesla_configuration:
+        return tesla_configuration.get('energy_site_id')
+
+    # A Tesla® account can contain multiple energy products.
+    # Query the list of products under the account.
+    response = owner_api.api_call('/api/1/products')
+
+    # Can this be parsed.
+    if 'response' not in response:
+        raise ValueError('Unable to process Tesla® products response.')
+
+    # Collect all "energy_site_id" values from products.
+    energy_site_ids = [
+        product['energy_site_id']
+        for product in response['response']
+        if 'energy_site_id' in product
+    ]
+
+    # Print the energy_site_id for the user.
+    print('Found Energy Site ID(s): ', end='')
+    print(*energy_site_ids, sep=', ')
+
+    # It is undesirable to change Max Backup settings on an arbitrary site.
+    if len(energy_site_ids) != 1:
+        raise ValueError(
+            f'You have {len(energy_site_ids)} energy products under this account. '
+            'You must manually set one to change in the configuration.'
+        )
+
+    # Pick the only energy_site_id.
+    energy_site_id = energy_site_ids[0]
+
+    # Store the energy_site_id for future use.
+    # Add or update the energy_site_id in the configuration.
+    configuration['tesla']['energy_site_id'] = energy_site_id
+
+    # Update the file to include the modified energy_site_id.
+    with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
+        json.dump(configuration, json_file, indent=4)
+
+    # Return the discovered energy_site_id.
+    return energy_site_id
+
 def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     """
     Encodes a tag and value buffer into a TLV (Tag-Length-Value) byte structure:
@@ -407,10 +577,11 @@ def format_message(message):
         f'{envelope_json}\n'
     )
 
-def get_max_backup_until(gateway, private_key, public_key_bytes, gateway_din):
+def get_max_backup_until(owner_api, energy_site_id, private_key, public_key_bytes, gateway_din):
     # Get, sign and send a routable message.
     response = send_teg_message(
-        gateway=gateway,
+        owner_api=owner_api,
+        energy_site_id=energy_site_id,
         private_key=private_key,
         public_key_bytes=public_key_bytes,
         gateway_din=gateway_din,
@@ -419,11 +590,9 @@ def get_max_backup_until(gateway, private_key, public_key_bytes, gateway_din):
     )
 
     # Parse the response into protobuf objects.
-    routable_message = routable_message_pb2.RoutableMessage()
-    routable_message.ParseFromString(response)
-
     message_envelope = message_envelope_pb2.MessageEnvelope()
-    message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
+    envelope_bytes = base64.b64decode(response['response']['message_envelope_as_bytes'])
+    message_envelope.ParseFromString(envelope_bytes)
 
     # Get a reference to the backup_events_response.
     backup_events_response = message_envelope.teg.get_backup_events_response
@@ -490,7 +659,7 @@ def evaluate_planned_dispatches(current_ts, octopus_planned_dispatches):
 
     return planned_dispatch_until
 
-def send_teg_message(gateway, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
+def send_teg_message(owner_api, energy_site_id, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
     # Get the signed routable message.
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
 
@@ -502,15 +671,25 @@ def send_teg_message(gateway, private_key, public_key_bytes, gateway_din, teg_me
             f'{format_message(routable_message.SerializeToString())}'
         )
 
-    # Send the request locally over LAN.
-    response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
+    # Send the request via Owner API.
+    response = owner_api.api_call(
+        path=f'/api/1/energy_sites/{energy_site_id}/device_command',
+        method='POST',
+        json={
+            'data': {
+                'routable_message': base64.b64encode(routable_message.SerializeToString()).decode("ascii"),
+                'identifier_type': identifier_type_pb2.IDENTIFIER_TYPE_GATEWAY_DIN,
+                'target_id': gateway_din
+            }
+        }
+    )
 
     # Print out the server's response.
     if debug:
         print(
             'Response:\n'
             '---------\n'
-            f'{format_message(response)}'
+            f'{json.dumps(response, indent=4)}'
         )
 
     return response
@@ -671,11 +850,14 @@ def main():
     private_key = serialization.load_der_private_key(private_key_bytes, password=None)
     public_key_bytes = base64.b64decode(paired_device.get('public_key'))
 
-    # Get an instance of the Gateway API.
-    gateway = Gateway(configuration.get('gateway', {}).get('host'))
+    # Get an authenticated instance of the Tesla® Owner API.
+    owner_api = get_tesla_api_session(configuration)
+
+    # Get the Tesla® Energy Site ID.
+    energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
 
     # Determine and display the current Max Backup status.
-    max_backup_until = get_max_backup_until(gateway, private_key, public_key_bytes, gateway_din)
+    max_backup_until = get_max_backup_until(owner_api, energy_site_id, private_key, public_key_bytes, gateway_din)
 
     if max_backup_until is None:
         status = 'Currently Inactive'
@@ -705,7 +887,8 @@ def main():
     for message in messages_to_send:
         # Get, sign and send a routable message.
         send_teg_message(
-            gateway=gateway,
+            owner_api=owner_api,
+            energy_site_id=energy_site_id,
             private_key=private_key,
             public_key_bytes=public_key_bytes,
             gateway_din=gateway_din,
