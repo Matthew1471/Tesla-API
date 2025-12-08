@@ -481,7 +481,7 @@ def unpair_device(args):
 
 def main():
     """
-    Main function for managing Telsa® Gateway paired devices.
+    Main function for managing Tesla® Gateway paired devices.
 
     This function loads credentials from a JSON file, initializes a session with Tesla® Owner API
     generates cryptographic keys, shares the public one with Tesla® so that authenticated commands
