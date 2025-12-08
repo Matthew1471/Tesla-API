@@ -100,13 +100,13 @@ class Authentication:
         # Build the login and authorisation code request (with PKCE) payload.
         # Excluded from this request is 'audience=', 'is_in_app=true' and 'locale=en-GB'.
         params = {
-            'client_id': client_id,
-            'code_challenge': code_challenge,
-            'code_challenge_method': 'S256',
-            'redirect_uri': redirect_uri,
             'response_type': 'code',
+            'client_id': client_id,
+            'redirect_uri': redirect_uri,
             'scope': scope,
-            'state': state
+            'state': state,
+            'code_challenge': code_challenge,
+            'code_challenge_method': 'S256'
         }
 
         if reauth:
@@ -199,11 +199,11 @@ class Authentication:
         # Build the exchange authorisation code for a token (with PKCE) request payload.
         # Scope has been excluded from this request.
         data = {
+            'grant_type': 'authorization_code',
+            'code': code,
             'redirect_uri': redirect_uri,
             'client_id': client_id,
-            'code': code,
-            'code_verifier': code_verifier,
-            'grant_type': 'authorization_code',
+            'code_verifier': code_verifier
         }
 
         # This is used to exchange an authorisation code for a token.
