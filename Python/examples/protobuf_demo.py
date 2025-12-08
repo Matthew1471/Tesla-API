@@ -83,7 +83,7 @@ def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
 def build_tlv_payload(din: str, expires_at: int, routable_message) -> bytes:
-    return b"".join([
+    return b''.join([
         to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
         to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
         to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
@@ -175,7 +175,7 @@ def generate_sample_message2(private_key, public_key_bytes, gateway_din):
     # Build a Common API Get Networking Status Request.
     get_networking_status_request = common_api_get_networking_status_request_pb2.CommonAPIGetNetworkingStatusRequest()
 
-    # Build a CommonMessage containing the CommonAPIGetNetworkingStatusRequest.
+    # Build a CommonMessages containing the CommonAPIGetNetworkingStatusRequest.
     common_message = common_messages_pb2.CommonMessages(
         get_networking_status_request=get_networking_status_request
     )
@@ -226,7 +226,7 @@ def parse_message(message, gateway_din=None, verify=True):
 if __name__ == '__main__':
 
     # Load configuration.
-    with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='r', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
 
     if USE_FAKE_DATA:

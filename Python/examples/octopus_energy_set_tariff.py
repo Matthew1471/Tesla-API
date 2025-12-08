@@ -722,7 +722,7 @@ def main():
     """
 
     # Load configuration.
-    with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='r', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
 
     # Get a reference to the 'octopus_energy' section of the configuration.

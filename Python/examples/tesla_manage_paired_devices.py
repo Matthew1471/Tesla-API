@@ -17,10 +17,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This example adds a paired device to a Tesla® Powerwall®.
+This example manages paired devices on a Tesla® Gateway.
 
 This allows commands requiring authentication to be sent.
 """
+
+# We process command line arguments.
+import argparse
 
 # Used to display the keys in Base64.
 import base64
@@ -28,12 +31,43 @@ import base64
 # This script makes heavy use of JSON parsing.
 import json
 
+# Used to convert a time to an expiration time.
+import math
+
+# We gracefully exit.
+import sys
+
 # We compare against the epoch time.
 import time
 
+# We generate unique IDs (uuids).
+import uuid
+
 # We perform cryptographic operations.
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
+# All the protobuf messages and types are in these packages.
+from tesla_api.protobuf.energy_device.v1 import (
+    authorized_client_type_pb2,
+    authorization_api_remove_authorized_client_request_pb2,
+    authorization_messages_pb2,
+    delivery_channel_pb2,
+    message_envelope_pb2,
+    participant_pb2
+)
+from tesla_api.protobuf.signatures import (
+    key_identity_pb2,
+    rsa_signature_data_pb2,
+    signature_data_pb2,
+    signature_type_pb2,
+    tag_pb2,
+)
+from tesla_api.protobuf.universal_message.v1 import (
+    destination_pb2,
+    domain_pb2,
+    routable_message_pb2
+)
 
 # All the shared Tesla® API functions are in this package.
 from tesla_api.cloud.authentication import Authentication
@@ -206,26 +240,97 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     # Return the discovered energy_site_id.
     return energy_site_id
 
-def main():
+def _list_devices(owner_api, energy_site_id):
+    # Send the Add Authorized Client Request via Owner API.
+    response = owner_api.api_call(
+        path=f'/api/1/energy_sites/{energy_site_id}/command?language=en_GB',
+        method='POST',
+        json={
+            'command_properties': {
+                'message': {
+                    'authorization': {
+                        'list_authorized_clients_request': {}
+                    }
+                },
+                'identifier_type': 1
+            },
+            'command_type': 'grpc_command'
+        }
+    )
+
+    # Print out the server's response.
+    print(json.dumps(response, indent=4))
+
+def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     """
-    Main function for managing Telsa Powerwall® paired devices.
-
-    This function loads credentials from a JSON file, initializes a session with Tesla® Owner API
-    generates cryptographic keys, shares the public one with Tesla® so that authenticated commands
-    can be sent.
-
-    Args:
-        None
-
-    Returns:
-        None
+    Encodes a tag and value buffer into a TLV (Tag-Length-Value) byte structure:
+    [Tag (1 byte), Length (1 byte), Value (N bytes)].
     """
+    # Return the three components in TLV format.
+    return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
+def get_signed_routable_authorization_message(private_key, public_key_bytes, din, authorization_message):
+    # Build the MessageEnvelope containing the AuthorizationMessage.
+    message_envelope = message_envelope_pb2.MessageEnvelope(
+        delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
+        sender=participant_pb2.Participant(
+            authorized_client=authorized_client_type_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
+        ),
+        recipient=participant_pb2.Participant(
+            din=din
+        ),
+        authorization=authorization_message
+    )
+
+    # Build the RoutableMessage containing the MessageEnvelope.
+    routable_message = routable_message_pb2.RoutableMessage(
+        to_destination=destination_pb2.Destination(
+            domain=domain_pb2.DOMAIN_ENERGY_DEVICE
+        ),
+        protobuf_message_as_bytes=message_envelope.SerializeToString(),
+        uuid=str(uuid.uuid4()).encode()
+    )
+
+    # Generate a signature expiration time.
+    # Round up to nearest second and add 12 seconds.
+    expires_at = math.ceil(time.time()) + 12
+
+    # Build the TLV payload to sign.
+    tlv_encoded_message = b''.join([
+        to_tlv(tag_pb2.TAG_SIGNATURE_TYPE, signature_type_pb2.SIGNATURE_TYPE_RSA.to_bytes()),
+        to_tlv(tag_pb2.TAG_DOMAIN, domain_pb2.DOMAIN_ENERGY_DEVICE.to_bytes()),
+        to_tlv(tag_pb2.TAG_PERSONALIZATION, din.encode()),
+        to_tlv(tag_pb2.TAG_EXPIRES_AT, expires_at.to_bytes(4)),
+        tag_pb2.TAG_END.to_bytes(),
+        routable_message.protobuf_message_as_bytes
+    ])
+
+    # Sign message and add the signature.
+    routable_message.signature_data.CopyFrom(
+        signature_data_pb2.SignatureData(
+            signer_identity=key_identity_pb2.KeyIdentity(
+                public_key=public_key_bytes
+            ),
+            rsa_data=rsa_signature_data_pb2.RsaSignatureData(
+                expires_at=expires_at,
+                signature=private_key.sign(
+                    data=tlv_encoded_message,
+                    padding=padding.PKCS1v15(),
+                    algorithm=hashes.SHA512()
+                )
+            )
+        )
+    )
+
+    # Return the signed routable Tesla Energy Gateway (TEG) message.
+    return routable_message
+
+def pair_device(args):
     # Load configuration.
-    with open('configuration/credentials.json', mode='r+', encoding='utf-8') as json_file:
+    with open('configuration/credentials.json', mode='r', encoding='utf-8') as json_file:
         configuration = json.load(json_file)
 
-    if 'paired_device' in configuration.get('tesla', {}):
+    if 'paired_device' in configuration.get('gateway', {}):
         raise ValueError(
             'You already have device pairing information in the configuration.\n'
             'To prevent overwriting an existing pairing this program will not continue.\n'
@@ -235,7 +340,7 @@ def main():
     # Get an authenticated instance of the Tesla® Owner API.
     owner_api = get_tesla_api_session(configuration)
 
-    # Get the energy site ID.
+    # Get the Tesla® Energy Site ID.
     energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
 
     # Generate a paired device key pair.
@@ -260,7 +365,7 @@ def main():
     print(f'Public Key:\n{base64_public_key}\n')
 
     # Add the paired_device information in the configuration.
-    configuration['tesla']['paired_device'] = {
+    configuration['gateway']['paired_device'] = {
         'private_key': base64_private_key,
         'public_key': base64_public_key
     }
@@ -281,7 +386,7 @@ def main():
                             'key_type': 1,
                             'public_key': base64_public_key,
                             'authorized_client_type': 1,
-                            'description': 'Tesla-API'
+                            'description': args.device_name
                         }
                     }
                 },
@@ -299,28 +404,126 @@ def main():
 
     # Repeat for 2 minutes (120 seconds), every 5 seconds = 24 iterations
     for _ in range(24):
-        # Send the Add Authorized Client Request via Owner API.
-        response = owner_api.api_call(
-            path=f'/api/1/energy_sites/{energy_site_id}/command?language=en_GB',
-            method='POST',
-            json={
-                'command_properties': {
-                    'message': {
-                        'authorization': {
-                            'list_authorized_clients_request': {}
-                        }
-                    },
-                    'identifier_type': 1
-                },
-                'command_type': 'grpc_command'
-            }
-        )
-
-        # Print out the server's response.
-        print(json.dumps(response, indent=4))
+        # Call internal function to list the paired devices.
+        _list_devices(owner_api, energy_site_id)
 
         # Wait for 5 seconds before the next iteration.
         time.sleep(5)
+
+def list_devices(args):
+    # Load configuration.
+    with open('configuration/credentials.json', mode='r', encoding='utf-8') as json_file:
+        configuration = json.load(json_file)
+
+    # Get an authenticated instance of the Tesla® Owner API.
+    owner_api = get_tesla_api_session(configuration)
+
+    # Get the energy site ID.
+    energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
+
+    # Call internal function to list the paired devices.
+    _list_devices(owner_api, energy_site_id)
+
+def unpair_device(args):
+    # Load configuration.
+    with open('configuration/credentials.json', mode='r', encoding='utf-8') as json_file:
+        configuration = json.load(json_file)
+
+    # Get the Gateway Device Identification Number (DIN).
+    gateway_din = configuration.get('gateway', {}).get('din')
+    if not gateway_din:
+        raise ValueError('Gateway Device Identification Number (DIN) not set in configuration.')
+
+    # Get the private and public key of the paired 'phone'.
+    paired_device = configuration.get('gateway', {}).get('paired_device')
+    if not paired_device:
+        raise ValueError('No paired_device in the configuration file. Please pair this device first.')
+    private_key_bytes = base64.b64decode(paired_device.get('private_key'))
+    private_key = serialization.load_der_private_key(private_key_bytes, password=None)
+    public_key_bytes = base64.b64decode(paired_device.get('public_key'))
+
+    # Get an authenticated instance of the Tesla® Owner API.
+    owner_api = get_tesla_api_session(configuration)
+
+    # Get the Tesla® Energy Site ID.
+    energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
+
+    # Build a Authorization API Remove Authorized Client Request.
+    remove_authorized_client_request = authorization_api_remove_authorized_client_request_pb2.AuthorizationAPIRemoveAuthorizedClientRequest(
+        public_key=base64.b64decode(args.key)
+    )
+
+    # Build a AuthorizationMessages containing the AuthorizationAPIRemoveAuthorizedClientRequest.
+    authorization_message = authorization_messages_pb2.AuthorizationMessages(
+        remove_authorized_client_request=remove_authorized_client_request
+    )
+
+    # Get the signed routable message.
+    routable_message = get_signed_routable_authorization_message(private_key, public_key_bytes, gateway_din, authorization_message)
+
+    # Send the Remove Authorized Client Request via Owner API.
+    response = owner_api.api_call(
+        path=f'/api/1/energy_sites/{energy_site_id}/command',
+        method='POST',
+        json={
+            'command_properties': {
+                'message': {
+                    'routable_message': base64.b64encode(routable_message.SerializeToString()).decode("ascii"),
+                },
+                'identifier_type': 1
+            },
+            'command_type': 'grpc_signed_command'
+        }
+    )
+
+    # Print out the server's response.
+    print(json.dumps(response, indent=4))
+
+def main():
+    """
+    Main function for managing Telsa® Gateway paired devices.
+
+    This function loads credentials from a JSON file, initializes a session with Tesla® Owner API
+    generates cryptographic keys, shares the public one with Tesla® so that authenticated commands
+    can be sent.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+
+    # Set up command line argument parsing.
+    parser = argparse.ArgumentParser(description='A program to manage paired devices with pair, list and unpair commands.')
+
+    # Create subparsers to handle different commands.
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Create the parser for the "/pair" command.
+    add_parser = subparsers.add_parser('pair', help='Pair a new device.')
+    add_parser.add_argument('device_name', default='Tesla-API', help='Name of the device to add.')
+    add_parser.set_defaults(func=pair_device)
+
+    # Create the parser for the "/list" command.
+    list_parser = subparsers.add_parser('list', help='List all paired devices.')
+    list_parser.set_defaults(func=list_devices)
+
+    # Create the parser for the "/unpair" command.
+    remove_parser = subparsers.add_parser('unpair', help='Remove a paired device by its key.')
+    remove_parser.add_argument('key', help='The public key of the device to unpair.')
+    remove_parser.set_defaults(func=unpair_device)
+
+    # Parse the arguments.
+    args = parser.parse_args()
+
+    # Call the appropriate function based on the subcommand used.
+    if hasattr(args, 'func'):
+        args.func(args)
+    else:
+        # If no subcommand is provided, display help message.
+        parser.print_help()
+        sys.exit(1)
 
 # Launch the main method if invoked directly.
 if __name__ == '__main__':

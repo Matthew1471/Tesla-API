@@ -832,18 +832,18 @@ def main():
         configuration = json.load(json_file)
 
     # Abort if currently within a 30 minute smart charging slot.
-    backoff_until = configuration.get('tesla', {}).get('max_backup_backoff')
+    backoff_until = configuration.get('gateway', {}).get('max_backup_backoff')
     if backoff_until is not None and current_ts < backoff_until:
         print('Action: Nothing to do (currently in a smart charging slot).\n')
         sys.exit(0)
 
     # Get the Gateway Device Identification Number (DIN).
-    gateway_din = configuration.get('tesla', {}).get('gateway_din')
+    gateway_din = configuration.get('gateway', {}).get('din')
     if not gateway_din:
         raise ValueError('Gateway Device Identification Number (DIN) not set in configuration.')
 
     # Get the private and public key of the paired 'phone'.
-    paired_device = configuration.get('tesla', {}).get('paired_device')
+    paired_device = configuration.get('gateway', {}).get('paired_device')
     if not paired_device:
         raise ValueError('No paired_device in the configuration file. Please pair this device first.')
     private_key_bytes = base64.b64decode(paired_device.get('private_key'))
@@ -898,7 +898,7 @@ def main():
     # We are now within a 30 minute smart charging slot.
     if planned_dispatch_until:
         # Align the current time to a 30-minute boundary.
-        configuration['tesla']['max_backup_backoff'] = align_to_half_hour(current_ts)
+        configuration['gateway']['max_backup_backoff'] = align_to_half_hour(current_ts)
 
         # Update the file to include the modified max_backup_backoff.
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
@@ -906,7 +906,7 @@ def main():
     # Or we are outside of one; remove any existing reference to a smart charging slot.
     elif backoff_until:
         # Remove max_backup_backoff from the config.
-        configuration['tesla'].pop('max_backup_backoff', None)
+        configuration['gateway'].pop('max_backup_backoff', None)
 
         # Update the file to remove the max_backup_backoff.
         with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
