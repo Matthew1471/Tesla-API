@@ -218,7 +218,10 @@ class Authentication:
         return response.json()
 
     @staticmethod
-    def refresh_token(refresh_token, domain=AUTHENTICATION_HOST):
+    def refresh_token(
+            refresh_token,
+            scope='openid email offline_access phone',
+            domain=AUTHENTICATION_HOST):
         """
         Perform an OAuth 2.0 refresh token exchange for an access token.
 
@@ -236,13 +239,14 @@ class Authentication:
 
         # Build the exchange refresh token for an access token request payload.
         data = {
+            'grant_type': 'refresh_token',
             'refresh_token': refresh_token,
             'client_id': 'ownerapi',
-            'grant_type': 'refresh_token'
+            'scope': scope
         }
 
         # This is used to exchange refresh token for an access token.
-        # Scope has been excluded from this request.
+        # Scope is required for this request if you wish to obtain another refresh token.
         response = requests.post(
             url=f'{domain}/oauth2/v3/token',
             headers=Authentication.HEADERS,
