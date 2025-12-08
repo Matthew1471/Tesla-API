@@ -253,13 +253,13 @@ if __name__ == '__main__':
         print(f'Demo Public Key:\n{base64.b64encode(public_key_bytes)}\n')
     else:
         # Get a reference to the tesla part of the configuration.
-        tesla_configuration = configuration.get('gateway', {})
+        gateway_configuration = configuration.get('gateway', {})
 
         # Get the Gateway's Device Identification Number (DIN).
-        gateway_din = tesla_configuration.get('din')
+        gateway_din = gateway_configuration.get('din')
 
         # Get the private and public key of the paired 'phone'.
-        paired_device = tesla_configuration.get('paired_device', {})
+        paired_device = gateway_configuration.get('paired_device', {})
         private_key_bytes = base64.b64decode(paired_device.get('private_key'))
         private_key = serialization.load_der_private_key(private_key_bytes, password=None)
         public_key_bytes = base64.b64decode(paired_device.get('public_key'))
