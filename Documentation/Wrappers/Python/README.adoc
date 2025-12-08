@@ -108,6 +108,30 @@ The Tesla(R) Gateway API endpoints are best documented elsewhere on https://gith
 |https://shop.pimoroni.com/products/unicorn-hat-hd[Unicorn HAT HD]
 |Consumes meter messages from AMQP and displays production and consumption data on a https://shop.pimoroni.com/products/unicorn-hat-hd[Unicorn HAT HD] running on a https://www.raspberrypi.com/products/[Raspberry Pi].
 
+|link:../../../Python/examples/cloud_jwks_convert.py[`cloud_jwks_convert.py`]
+|None
+|Cloud
+|Console
+|This is a project resource to aquire JWKS key information for validating tokens, converts to PEM and displays data on the console/terminal then exits.
+
+|link:../../../Python/examples/cloud_manage_paired_devices.py[`cloud_manage_paired_devices.py`]
+|None
+|Cloud
+|Gateway
+|Uses the Tesla(R) Cloud proxy to manage paired devices used to send authenticated commands to the Gateway.
+
+|link:../../../Python/examples/cloud_octopus_energy_max_backup.py[`cloud_octopus_energy_max_backup.py`]
+|None
+|https://octopus.energy/dashboard/new/accounts/personal-details/api-access[Octopus Energy API]
+|Cloud
+|Aquires https://octopusenergy.group/kraken-flex[Kraken Flex]'s "https://developer.octopus.energy/graphql/reference/queries/#apisite:flexplanneddispatches[planned dispatches]" as used in Octopus Energy(R)'s https://octopus.energy/smart/intelligent-octopus-go/[Intelligent Octopus Go] and uses the Tesla(R) command proxy to relay it to a Tesla(R) Gateway. It also displays data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+
+|link:../../../Python/examples/cloud_octopus_energy_set_tariff.py[`cloud_octopus_energy_set_tariff.py`]
+|None
+|https://octopus.energy/dashboard/new/accounts/personal-details/api-access[Octopus Energy API]
+|Cloud
+|Aquires utility tariff information from Octopus Energy(R), converts to a Tesla(R) Tariff and uploads it to Tesla®. It also displays data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+
 |link:../../../Python/examples/gateway_amqp_meters.py[`gateway_amqp_meters.py`]
 |`pika`
 |Gateway
@@ -120,22 +144,22 @@ The Tesla(R) Gateway API endpoints are best documented elsewhere on https://gith
 |Console
 |Displays meter data and operation on the console/terminal then repeats the current battery charge level percentages until closed.
 
-|link:../../../Python/examples/octopus_energy_set_tariff.py[`octopus_energy_set_tariff.py`]
+|link:../../../Python/examples/gateway_octopus_energy_max_backup.py[`gateway_octopus_energy_max_backup.py`]
 |None
 |https://octopus.energy/dashboard/new/accounts/personal-details/api-access[Octopus Energy API]
-|Cloud
-|Aquires utility tariff information from Octopus Energy, converts to a Tesla Tariff and uploads it to Tesla. It also displays data on the console/terminal then exits. Will attempt to refresh any expired tokens.
+|Gateway
+|Aquires https://octopusenergy.group/kraken-flex[Kraken Flex]'s "https://developer.octopus.energy/graphql/reference/queries/#apisite:flexplanneddispatches[planned dispatches]" as used in Octopus Energy(R)'s https://octopus.energy/smart/intelligent-octopus-go/[Intelligent Octopus Go] and uses the LAN to apply them directly on a local Tesla(R) Gateway. It also displays data on the console/terminal then exits.
 
-|link:../../../Python/examples/tesla_generate_docs.py[`tesla_generate_docs.py`]
+|link:../../../Python/examples/generate_docs.py[`generate_docs.py`]
 |None
 |Static JSON File
 |Documentation Files
 |This is a project resource to semi-automatically generate the documentation files.
 
-|link:../../../Python/examples/tesla_jwks_convert.py[`tesla_jwks_convert.py`]
+|link:../../../Python/examples/protobuf_demo.py[`protobuf_demo.py`]
 |None
-|Cloud
+|None
 |Console
-|This is a project resource to aquire JWKS key information for validating tokens, converts to PEM and displays data on the console/terminal then exits.
+|This is a project resource to demonstrate generating and sending protobuf payloads via the LAN.
 
 |===
