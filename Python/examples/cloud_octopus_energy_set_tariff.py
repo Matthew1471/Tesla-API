@@ -690,7 +690,7 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
 
     # Store the energy_site_id for future use.
     # Add or update the energy_site_id in the configuration.
-    configuration['tesla']['energy_site_id'] = energy_site_id
+    tesla_configuration['energy_site_id'] = energy_site_id
 
     # Update the file to include the modified energy_site_id.
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:

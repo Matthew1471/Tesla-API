@@ -444,13 +444,24 @@ def get_tesla_api_session(configuration):
     # Return the initialised owner_api object.
     return owner_api
 
-def get_or_update_tesla_energy_site_id(configuration, owner_api):
-    # Get a reference to the 'tesla' section of the configuration.
-    tesla_configuration = configuration.get('tesla')
+def get_or_update_tesla_energy_site(configuration, owner_api):
+    """
+    Retrieve or update Tesla® Energy site information in the configuration.
 
-    # Save time (and reduce ambiguity) by setting an energy_site_id in the configuration.
-    if 'energy_site_id' in tesla_configuration:
-        return tesla_configuration.get('energy_site_id')
+    Args:
+        configuration (dict): User configuration containing Tesla® and gateway info.
+        owner_api (OwnerAPI): An instantiated OwnerAPI object for querying data.
+
+    Returns:
+        tuple[int, str]: (energy_site_id, gateway_din)
+    """
+    # Get references to the 'gateway' and 'tesla' sections of the configuration.
+    gateway_configuration = configuration.setdefault('gateway', {})
+    tesla_configuration = configuration.setdefault('tesla', {})
+
+    # Save time (and reduce ambiguity) by setting an energy_site_id and DIN in the configuration.
+    if 'energy_site_id' in tesla_configuration and 'din' in gateway_configuration:
+        return tesla_configuration['energy_site_id'], gateway_configuration['din']
 
     # A Tesla® account can contain multiple energy products.
     # Query the list of products under the account.
@@ -460,37 +471,43 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
     if 'response' not in response:
         raise ValueError('Unable to process Tesla® products response.')
 
-    # Collect all "energy_site_id" values from products.
-    energy_site_ids = [
-        product['energy_site_id']
-        for product in response['response']
-        if 'energy_site_id' in product
+    # Collect all "energy_site_id" and "gateway_din" values from products.
+    sites = [
+        {
+            'site_name': site.get('site_name'),
+            'energy_site_id': site['energy_site_id'],
+            'gateway_din': site['gateway_id'],
+        }
+        for site in response['response']
+        if 'energy_site_id' in site and 'gateway_id' in site
     ]
 
     # Print the energy_site_id for the user.
-    print('Found Energy Site ID(s): ', end='')
-    print(*energy_site_ids, sep=', ')
+    print('Found Energy Site(s): ', end='')
+    print(*sites, sep=', ')
 
     # It is undesirable to change Max Backup settings on an arbitrary site.
-    if len(energy_site_ids) != 1:
+    if len(sites) != 1:
         raise ValueError(
-            f'You have {len(energy_site_ids)} energy products under this account. '
+            f'You have {len(sites)} energy sites under this account. '
             'You must manually set one to change in the configuration.'
         )
 
-    # Pick the only energy_site_id.
-    energy_site_id = energy_site_ids[0]
+    # Pick the only energy_site_id and gateway_id.
+    energy_site_id = sites[0]['energy_site_id']
+    gateway_din = sites[0]['gateway_din']
 
-    # Store the energy_site_id for future use.
-    # Add or update the energy_site_id in the configuration.
-    configuration['tesla']['energy_site_id'] = energy_site_id
+    # Store the din and energy_site_id for future use.
+    # Add or update the din and energy_site_id in the configuration.
+    gateway_configuration['din'] = gateway_din
+    tesla_configuration['energy_site_id'] = energy_site_id
 
     # Update the file to include the modified energy_site_id.
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
-    # Return the discovered energy_site_id.
-    return energy_site_id
+    # Return the discovered energy_site_id and gateway_din.
+    return energy_site_id, gateway_din
 
 def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     """
@@ -837,11 +854,6 @@ def main():
         print('Action: Nothing to do (currently in a smart charging slot).\n')
         sys.exit(0)
 
-    # Get the Gateway Device Identification Number (DIN).
-    gateway_din = configuration.get('gateway', {}).get('din')
-    if not gateway_din:
-        raise ValueError('Gateway Device Identification Number (DIN) not set in configuration.')
-
     # Get the private and public key of the paired 'phone'.
     paired_device = configuration.get('gateway', {}).get('paired_device')
     if not paired_device:
@@ -853,8 +865,8 @@ def main():
     # Get an authenticated instance of the Tesla® Owner API.
     owner_api = get_tesla_api_session(configuration)
 
-    # Get the Tesla® Energy Site ID.
-    energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
+    # Get the Tesla® Energy Site ID and Gateway Device Identification Number (DIN).
+    energy_site_id, gateway_din = get_or_update_tesla_energy_site(configuration, owner_api)
 
     # Determine and display the current Max Backup status.
     max_backup_until = get_max_backup_until(owner_api, energy_site_id, private_key, public_key_bytes, gateway_din)
