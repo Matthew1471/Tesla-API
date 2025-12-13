@@ -331,20 +331,19 @@ def to_tlv(tag: int, value_bytes: bytes) -> bytes:
     return tag.to_bytes() + len(value_bytes).to_bytes() + value_bytes
 
 def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_message):
-    # Build the message envelope containing the teg_message.
+    # Build the MessageEnvelope containing the TEGMessage.
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
             authorized_client=authorized_client_type_pb2.AUTHORIZED_CLIENT_TYPE_CUSTOMER_MOBILE_APP
         ),
         recipient=participant_pb2.Participant(
-            # Device Identification Number (DIN).
             din=din
         ),
         teg=teg_message
     )
 
-    # Build the routable message containing the message envelope.
+    # Build the RoutableMessage containing the MessageEnvelope.
     routable_message = routable_message_pb2.RoutableMessage(
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE

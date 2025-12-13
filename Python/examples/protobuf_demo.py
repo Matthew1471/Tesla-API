@@ -144,7 +144,7 @@ def generate_sample_message(private_key, public_key_bytes, gateway_din):
         schedule_manual_backup_event_request=schedule_manual_backup_event_request
     )
 
-    # Build the message envelope containing the teg_message.
+    # Build the MessageEnvelope containing the TEGMessage.
     message_envelope = message_envelope_pb2.MessageEnvelope(
         delivery_channel=delivery_channel_pb2.DELIVERY_CHANNEL_HERMES_COMMAND,
         sender=participant_pb2.Participant(
@@ -156,7 +156,7 @@ def generate_sample_message(private_key, public_key_bytes, gateway_din):
         teg=teg_message
     )
 
-    # Build the routable message containing the message envelope.
+    # Build the RoutableMessage containing the MessageEnvelope.
     routable_message = routable_message_pb2.RoutableMessage(
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE

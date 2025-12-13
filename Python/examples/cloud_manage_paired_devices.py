@@ -104,7 +104,7 @@ def update_tesla_token_configuration(configuration, token_response):
         'refresh_expiry': time.time() + 7776000
     }
 
-    # Add the token_configuration to the configuration
+    # Add the token_configuration to the configuration.
     configuration['tesla']['token'] = token_configuration
 
     # Update the file to include the modified token.
@@ -123,7 +123,7 @@ def get_tesla_api_session(configuration):
     It initialises the Owner API wrapper for subsequent interactions.
 
     Args:
-        credentials (dict): A dictionary containing the required credentials.
+        configuration (dict): A dictionary containing the required credentials.
 
     Returns:
         OwnerAPI: An initialised API wrapper object for interacting with Tesla® Owner API.
@@ -149,7 +149,7 @@ def get_tesla_api_session(configuration):
         # It is not valid so clear it.
         token_configuration['current'] = None
 
-        # Try refresh token if available and not expired
+        # Try refresh token if available and not expired.
         refresh_token = token_configuration.get('refresh')
         refresh_expiry = token_configuration.get('refresh_expiry')
         if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
@@ -304,6 +304,7 @@ def get_signed_routable_authorization_message(private_key, public_key_bytes, din
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
         ),
+        # Serialize the MessageEnvelope to a string.
         protobuf_message_as_bytes=message_envelope.SerializeToString(),
         uuid=str(uuid.uuid4()).encode()
     )

@@ -314,7 +314,7 @@ def update_tesla_token_configuration(configuration, token_response):
         'refresh_expiry': time.time() + 7776000
     }
 
-    # Add the token_configuration to the configuration
+    # Add the token_configuration to the configuration.
     configuration['tesla']['token'] = token_configuration
 
     # Update the file to include the modified token.
@@ -359,7 +359,7 @@ def get_tesla_api_session(configuration):
         # It is not valid so clear it.
         token_configuration['current'] = None
 
-        # Try refresh token if available and not expired
+        # Try refresh token if available and not expired.
         refresh_token = token_configuration.get('refresh')
         refresh_expiry = token_configuration.get('refresh_expiry')
         if (refresh_token and refresh_expiry and time.time() < refresh_expiry):
@@ -668,7 +668,7 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
         raise ValueError('Unable to process Tesla® products response.')
 
     # Collect all "energy_site_id" values from products.
-    energy_site_ids = [
+    sites = [
         product['energy_site_id']
         for product in response['response']
         if 'energy_site_id' in product
@@ -676,17 +676,17 @@ def get_or_update_tesla_energy_site_id(configuration, owner_api):
 
     # Print the energy_site_id for the user.
     print('Found Energy Site ID(s): ', end='')
-    print(*energy_site_ids, sep=', ')
+    print(*sites, sep=', ')
 
     # It is undesirable to change TOU settings on an arbitrary site.
-    if len(energy_site_ids) != 1:
+    if len(sites) != 1:
         raise ValueError(
-            f'You have {len(energy_site_ids)} energy products under this account. '
+            f'You have {len(sites)} energy products under this account. '
             'You must manually set one to change in the configuration.'
         )
 
     # Pick the only energy_site_id.
-    energy_site_id = energy_site_ids[0]
+    energy_site_id = sites[0]
 
     # Store the energy_site_id for future use.
     # Add or update the energy_site_id in the configuration.
@@ -748,7 +748,7 @@ def main():
     # Get an authenticated instance of the Tesla® Owner API.
     owner_api = get_tesla_api_session(configuration)
 
-    # Get the energy site ID.
+    # Get the Tesla® Energy Site ID.
     energy_site_id = get_or_update_tesla_energy_site_id(configuration, owner_api)
 
     # Update Tesla® Tariff.
