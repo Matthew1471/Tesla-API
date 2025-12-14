@@ -392,8 +392,11 @@ def format_message(routable_message):
     routable_json = json_format.MessageToJson(routable_message, preserving_proto_field_name=True)
 
     # Step 2: Extract and parse the nested MessageEnvelope message.
-    message_envelope = message_envelope_pb2.MessageEnvelope()
-    message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
+    message_envelope = message_envelope_pb2.MessageEnvelope.FromString(
+        routable_message.protobuf_message_as_bytes
+    )
+
+    # Step 3: Convert the MessageEnvelope message to JSON.
     envelope_json = json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)
 
     # Return a combined string representation.
@@ -415,12 +418,10 @@ def get_max_backup_until(gateway, private_key, public_key_bytes, gateway_din):
         debug=False
     )
 
-    # Parse the response into protobuf objects.
-    routable_message = routable_message_pb2.RoutableMessage()
-    routable_message.ParseFromString(response)
-
-    message_envelope = message_envelope_pb2.MessageEnvelope()
-    message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
+    # Obtain the MessageEnvelope from the RoutableMessage.
+    message_envelope = message_envelope_pb2.MessageEnvelope.FromString(
+        response.protobuf_message_as_bytes
+    )
 
     # Get a reference to the backup_events_response.
     backup_events_response = message_envelope.teg.get_backup_events_response
@@ -503,8 +504,7 @@ def send_teg_message(gateway, private_key, public_key_bytes, gateway_din, teg_me
     raw_response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
     # Parse the raw response as a RoutableMessage.
-    response = routable_message_pb2.RoutableMessage()
-    response.ParseFromString(raw_response)
+    response = routable_message_pb2.RoutableMessage.FromString(raw_response)
 
     # Print out the server's response.
     if debug:

@@ -216,8 +216,11 @@ def format_message(routable_message, gateway_din=None, verify=True):
         verify_signature(gateway_din, routable_message)
 
     # Step 3: Extract and parse the nested MessageEnvelope message.
-    message_envelope = message_envelope_pb2.MessageEnvelope()
-    message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
+    message_envelope = message_envelope_pb2.MessageEnvelope.FromString(
+        routable_message.protobuf_message_as_bytes
+    )
+
+    # Step 4: Convert the MessageEnvelope message to JSON.
     envelope_json = json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)
 
     # Return a combined string representation.
@@ -287,8 +290,7 @@ if __name__ == '__main__':
         raw_response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
 
         # Parse the raw response as a RoutableMessage.
-        response = routable_message_pb2.RoutableMessage()
-        response.ParseFromString(raw_response)
+        response = routable_message_pb2.RoutableMessage.FromString(raw_response)
 
         # Print out the server's response.
         print(format_message(response, verify=False))

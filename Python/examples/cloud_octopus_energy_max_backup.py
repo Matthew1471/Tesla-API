@@ -579,8 +579,11 @@ def format_message(routable_message):
     routable_json = json_format.MessageToJson(routable_message, preserving_proto_field_name=True)
 
     # Step 2: Extract and parse the nested MessageEnvelope message.
-    message_envelope = message_envelope_pb2.MessageEnvelope()
-    message_envelope.ParseFromString(routable_message.protobuf_message_as_bytes)
+    message_envelope = message_envelope_pb2.MessageEnvelope.FromString(
+        routable_message.protobuf_message_as_bytes
+    )
+
+    # Step 3: Convert the MessageEnvelope message to JSON.
     envelope_json = json_format.MessageToJson(message_envelope, preserving_proto_field_name=True)
 
     # Return a combined string representation.
@@ -604,9 +607,9 @@ def get_max_backup_until(owner_api, energy_site_id, private_key, public_key_byte
     )
 
     # Parse the response into protobuf objects.
-    message_envelope = message_envelope_pb2.MessageEnvelope()
-    envelope_bytes = base64.b64decode(response['response']['message_envelope_as_bytes'])
-    message_envelope.ParseFromString(envelope_bytes)
+    message_envelope = message_envelope_pb2.MessageEnvelope.FromString(
+        base64.b64decode(response['response']['message_envelope_as_bytes'])
+    )
 
     # Get a reference to the backup_events_response.
     backup_events_response = message_envelope.teg.get_backup_events_response
