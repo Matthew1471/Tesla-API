@@ -574,10 +574,8 @@ def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_mess
     # Return the signed routable Tesla Energy Gateway (TEG) message.
     return routable_message
 
-def format_message(message):
-    # Step 1: Parse the top-level RoutableMessage message.
-    routable_message = routable_message_pb2.RoutableMessage()
-    routable_message.ParseFromString(message)
+def format_message(routable_message):
+    # Step 1: Convert the top-level RoutableMessage message to JSON.
     routable_json = json_format.MessageToJson(routable_message, preserving_proto_field_name=True)
 
     # Step 2: Extract and parse the nested MessageEnvelope message.
@@ -684,7 +682,7 @@ def send_teg_message(owner_api, energy_site_id, private_key, public_key_bytes, g
         print(
             'Request:\n'
             '--------\n'
-            f'{format_message(routable_message.SerializeToString())}'
+            f'{format_message(routable_message)}'
         )
 
     # Send the request via Owner API.

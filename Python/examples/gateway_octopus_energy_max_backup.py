@@ -387,10 +387,8 @@ def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_mess
     # Return the signed routable Tesla Energy Gateway (TEG) message.
     return routable_message
 
-def format_message(message):
-    # Step 1: Parse the top-level RoutableMessage message.
-    routable_message = routable_message_pb2.RoutableMessage()
-    routable_message.ParseFromString(message)
+def format_message(routable_message):
+    # Step 1: Convert the top-level RoutableMessage message to JSON.
     routable_json = json_format.MessageToJson(routable_message, preserving_proto_field_name=True)
 
     # Step 2: Extract and parse the nested MessageEnvelope message.
@@ -498,11 +496,15 @@ def send_teg_message(gateway, private_key, public_key_bytes, gateway_din, teg_me
         print(
             'Request:\n'
             '--------\n'
-            f'{format_message(routable_message.SerializeToString())}'
+            f'{format_message(routable_message)}'
         )
 
     # Send the request locally over LAN.
-    response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
+    raw_response = gateway.api_call('/tedapi/v1r', 'POST', data=routable_message.SerializeToString())
+
+    # Parse the raw response as a RoutableMessage.
+    response = routable_message_pb2.RoutableMessage()
+    response.ParseFromString(raw_response)
 
     # Print out the server's response.
     if debug:
