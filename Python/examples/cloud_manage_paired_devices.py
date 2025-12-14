@@ -49,9 +49,9 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
-    authorized_client_type_pb2,
     authorization_api_remove_authorized_client_request_pb2,
     authorization_messages_pb2,
+    authorized_client_type_pb2,
     delivery_channel_pb2,
     message_envelope_pb2,
     participant_pb2
@@ -250,7 +250,7 @@ def get_or_update_tesla_energy_site(configuration, owner_api):
     gateway_configuration['din'] = gateway_din
     tesla_configuration['energy_site_id'] = energy_site_id
 
-    # Update the file to include the modified energy_site_id.
+    # Update the file to include the modified din and energy_site_id.
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 

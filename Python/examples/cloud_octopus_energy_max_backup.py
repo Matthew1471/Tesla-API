@@ -502,7 +502,7 @@ def get_or_update_tesla_energy_site(configuration, owner_api):
     gateway_configuration['din'] = gateway_din
     tesla_configuration['energy_site_id'] = energy_site_id
 
-    # Update the file to include the modified energy_site_id.
+    # Update the file to include the modified din and energy_site_id.
     with open('configuration/credentials.json', mode='w', encoding='utf-8') as json_file:
         json.dump(configuration, json_file, indent=4)
 
