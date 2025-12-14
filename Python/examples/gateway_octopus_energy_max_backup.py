@@ -348,7 +348,7 @@ def get_signed_routable_teg_message(private_key, public_key_bytes, din, teg_mess
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
         ),
-        # Serialize the message envelope to a string.
+        # Serialize the MessageEnvelope to a string.
         protobuf_message_as_bytes=message_envelope.SerializeToString(),
         uuid=str(uuid.uuid4()).encode()
     )
@@ -409,7 +409,7 @@ def format_message(routable_message):
 
 def get_max_backup_until(gateway, private_key, public_key_bytes, gateway_din):
     # Get, sign and send a routable message.
-    response = send_teg_message(
+    response = send_message(
         gateway=gateway,
         private_key=private_key,
         public_key_bytes=public_key_bytes,
@@ -488,7 +488,7 @@ def evaluate_planned_dispatches(current_ts, octopus_planned_dispatches):
 
     return planned_dispatch_until
 
-def send_teg_message(gateway, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
+def send_message(gateway, private_key, public_key_bytes, gateway_din, teg_message, debug=True):
     # Get the signed routable message.
     routable_message = get_signed_routable_teg_message(private_key, public_key_bytes, gateway_din, teg_message)
 
@@ -700,12 +700,9 @@ def main():
     planned_dispatch_until = evaluate_planned_dispatches(current_ts, octopus_planned_dispatches)
 
     # Decide what messages (if any) to send to the Tesla® Gateway to control Max Backup.
-    messages_to_send = decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_until)
-
-    # Send any messages we collected.
-    for message in messages_to_send:
-        # Get, sign and send a routable message.
-        send_teg_message(
+    for message in decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_until):
+        # Get, sign and send a RoutableMessage.
+        send_message(
             gateway=gateway,
             private_key=private_key,
             public_key_bytes=public_key_bytes,
