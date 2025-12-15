@@ -304,7 +304,6 @@ def get_signed_routable_authorization_message(private_key, public_key_bytes, din
         to_destination=destination_pb2.Destination(
             domain=domain_pb2.DOMAIN_ENERGY_DEVICE
         ),
-        # Serialize the MessageEnvelope to a string.
         protobuf_message_as_bytes=message_envelope.SerializeToString(),
         uuid=str(uuid.uuid4()).encode()
     )
@@ -340,7 +339,7 @@ def get_signed_routable_authorization_message(private_key, public_key_bytes, din
         )
     )
 
-    # Return the signed routable Tesla Energy Gateway (TEG) message.
+    # Return the signed routable Tesla® Energy Gateway (TEG) message.
     return routable_message
 
 def pair_device(args):
