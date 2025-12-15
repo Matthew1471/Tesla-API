@@ -28,6 +28,7 @@
     <Compile Include="examples\cloud_octopus_energy_set_tariff.py" />
     <Compile Include="examples\gateway_amqp_meters.py" />
     <Compile Include="examples\gateway_console.py" />
+    <Compile Include="examples\gateway_manage_paired_devices.py" />
     <Compile Include="examples\gateway_octopus_energy_max_backup.py" />
     <Compile Include="examples\generate_docs.py" />
     <Compile Include="examples\protobuf_demo.py" />
