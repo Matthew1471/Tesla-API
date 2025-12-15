@@ -552,7 +552,7 @@ def build_unpair_message(public_key):
 
     # Build a AuthorizationMessages containing the AuthorizationAPIRemoveAuthorizedClientRequest.
     authorization_message = authorization_messages_pb2.AuthorizationMessages(
-        remove_authorized_clients_request=remove_authorized_client_request
+        remove_authorized_client_request=remove_authorized_client_request
     )
 
     return authorization_message
