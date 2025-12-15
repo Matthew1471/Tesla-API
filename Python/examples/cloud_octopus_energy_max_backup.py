@@ -64,18 +64,19 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from tesla_api.cloud.authentication import Authentication
 from tesla_api.cloud.owner_api import OwnerAPI
 
+# All the shared Octopus Energy® functions are in this package.
+from tesla_api.octopus_energy import OctopusEnergy
+
 # All the protobuf messages and types are in these packages.
-from tesla_api.protobuf.energy.command.v1 import (
-   identifier_type_pb2
-)
+from tesla_api.protobuf.energy.command.v1 import identifier_type_pb2
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_type_pb2,
     control_event_scheduling_info_pb2,
     delivery_channel_pb2,
     message_envelope_pb2,
     participant_pb2,
-    teg_api_get_backup_events_request_pb2,
     teg_api_cancel_manual_backup_event_request_pb2,
+    teg_api_get_backup_events_request_pb2,
     teg_api_schedule_manual_backup_event_request_pb2,
     teg_messages_pb2
 )
@@ -84,16 +85,13 @@ from tesla_api.protobuf.signatures import (
     rsa_signature_data_pb2,
     signature_data_pb2,
     signature_type_pb2,
-    tag_pb2,
+    tag_pb2
 )
 from tesla_api.protobuf.universal_message.v1 import (
     destination_pb2,
     domain_pb2,
     routable_message_pb2
 )
-
-# All the shared Octopus Energy® functions are in this package.
-from tesla_api.octopus_energy import OctopusEnergy
 
 
 def update_octopus_energy_token_configuration(configuration, token_response):

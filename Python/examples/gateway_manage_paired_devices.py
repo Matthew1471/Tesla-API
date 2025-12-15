@@ -50,10 +50,6 @@ import uuid
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
-# Third party library for dealing with protobuf data;
-# "pip install protobuf" if getting import errors.
-from google.protobuf import json_format
-
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
     authorization_api_add_authorized_client_by_trusted_signature_request_pb2,
@@ -77,7 +73,7 @@ from tesla_api.protobuf.signatures import (
     rsa_signature_data_pb2,
     signature_data_pb2,
     signature_type_pb2,
-    tag_pb2,
+    tag_pb2
 )
 from tesla_api.protobuf.universal_message.v1 import (
     destination_pb2,

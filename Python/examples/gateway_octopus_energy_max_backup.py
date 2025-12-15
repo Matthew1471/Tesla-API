@@ -63,6 +63,9 @@ from google.protobuf.timestamp_pb2 import Timestamp
 # All the shared Tesla® API functions are in this package.
 from tesla_api.local.gateway import Gateway
 
+# All the shared Octopus Energy® functions are in this package.
+from tesla_api.octopus_energy import OctopusEnergy
+
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_type_pb2,
@@ -70,8 +73,8 @@ from tesla_api.protobuf.energy_device.v1 import (
     delivery_channel_pb2,
     message_envelope_pb2,
     participant_pb2,
-    teg_api_get_backup_events_request_pb2,
     teg_api_cancel_manual_backup_event_request_pb2,
+    teg_api_get_backup_events_request_pb2,
     teg_api_schedule_manual_backup_event_request_pb2,
     teg_messages_pb2
 )
@@ -80,16 +83,13 @@ from tesla_api.protobuf.signatures import (
     rsa_signature_data_pb2,
     signature_data_pb2,
     signature_type_pb2,
-    tag_pb2,
+    tag_pb2
 )
 from tesla_api.protobuf.universal_message.v1 import (
     destination_pb2,
     domain_pb2,
     routable_message_pb2
 )
-
-# All the shared Octopus Energy® functions are in this package.
-from tesla_api.octopus_energy import OctopusEnergy
 
 
 def update_octopus_energy_token_configuration(configuration, token_response):
@@ -581,7 +581,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
-            # Get the message to send.
+            # Get the start message to send.
             messages_to_send = [build_start_message(current_ts, duration_seconds)]
     # We are in a planned dispatch time and Max Backup is currently set
     # but the dispatch times have changed.
@@ -598,7 +598,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
-            # Get the messages to send.
+            # Get the stop and start messages to send.
             messages_to_send = [
                 build_stop_message(),
                 build_start_message(current_ts, duration_seconds)
@@ -611,7 +611,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
         # Notify the user.
         print('Action: Stop Max Backup!\n')
 
-        # Get, sign and send a routable message.
+        # Get the stop message to send.
         messages_to_send = [build_stop_message()]
     # No action is required.
     else:

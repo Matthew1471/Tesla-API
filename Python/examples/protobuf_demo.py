@@ -38,6 +38,9 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from google.protobuf import json_format
 from google.protobuf.timestamp_pb2 import Timestamp
 
+# For sending local commands.
+from tesla_api.local.gateway import Gateway
+
 # All the protobuf messages and types are in these packages.
 from tesla_api.protobuf.energy_device.v1 import (
     authorized_client_type_pb2,
@@ -55,16 +58,13 @@ from tesla_api.protobuf.signatures import (
     rsa_signature_data_pb2,
     signature_data_pb2,
     signature_type_pb2,
-    tag_pb2,
+    tag_pb2
 )
 from tesla_api.protobuf.universal_message.v1 import (
     destination_pb2,
     domain_pb2,
     routable_message_pb2
 )
-
-# For sending local commands.
-from tesla_api.local.gateway import Gateway
 
 # Whether to use real identifiable data from the configuration file
 # (be careful if posting this online).
