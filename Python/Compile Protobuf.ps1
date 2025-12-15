@@ -1,16 +1,16 @@
-# Get this script's path.
-$scriptPath = Split-Path ($MyInvocation.MyCommand.Path)
+# Get this script's directory.
+$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# Go one directory up.
+$parentPath = Split-Path -Parent $scriptPath
 
 # Define Temporary drive letter.
 $driveLetter = "Z:"
 
 # Map the drive if not already mapped.
 if (-not (Get-PSDrive -Name $driveLetter.TrimEnd(':') -ErrorAction SilentlyContinue)) {
-    net use $driveLetter $scriptPath
+    net use $driveLetter $parentPath
 }
-
-# Change directory to the mapped drive.
-Set-Location (Join-Path $driveLetter "Documentation\Protobuf")
 
 # Define proto files as an array.
 $protoFiles = @(
@@ -21,17 +21,23 @@ $protoFiles = @(
     "tesla_api\protobuf\universal_message\v1\*.proto"
 )
 
-# Join the array into a single string.
-$protoFileString = $protoFiles -join " "
+try {
+    # Change to the target directory.
+    Push-Location "$driveLetter\Documentation\Protobuf"
 
-# Clear screen.
-cls
+    # Clear screen.
+    cls
 
-# Execute protoc.
-Invoke-Expression "protoc --python_out=..\..\Python\src\ $protoFileString"
+    # Run protoc directly.
+    & protoc --python_out=..\..\Python\src\ $protoFiles
+}
+finally {
+    # Restore location.
+    Pop-Location
 
-# Reset directory back to the mapped drive.
-Set-Location (Join-Path $driveLetter "\")
+    # Unmap drive.
+    & net use $driveLetter /delete /y
+}
 
 # Pause.
 #Read-Host
