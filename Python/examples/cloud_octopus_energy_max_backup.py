@@ -891,7 +891,13 @@ def main():
     planned_dispatch_until = evaluate_planned_dispatches(current_ts, octopus_planned_dispatches)
 
     # Decide what messages (if any) to send to the Tesla® Gateway to control Max Backup.
-    for message in decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_until):
+    for count, message in enumerate(decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_until)):
+        # Gateway appears to process messages asynchronously;
+        # Allow time to process previous message.
+        if count > 0:
+             # Delay in seconds.
+             time.sleep(1)
+
         # Get, sign and send a RoutableMessage.
         send_message(
             owner_api=owner_api,
