@@ -649,7 +649,7 @@ def evaluate_planned_dispatches(current_ts, octopus_planned_dispatches):
         end = datetime.datetime.fromisoformat(planned_dispatch['end'])
 
         print(
-            f' * {start} -> {end} '
+            f' * {start.astimezone()} -> {end.astimezone()} '
             f'({planned_dispatch["energyAddedKwh"]} kW via {planned_dispatch["type"].title()})'
         )
 
@@ -774,7 +774,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
-            # Get the message to send.
+            # Get the start message to send.
             messages_to_send = [build_start_message(current_ts, duration_seconds)]
     # We are in a planned dispatch time and Max Backup is currently set
     # but the dispatch times have changed.
@@ -791,7 +791,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
 
         # We cannot request a Max Backup less than 60 seconds.
         if duration_seconds >= 60:
-            # Get the messages to send.
+            # Get the stop and start messages to send.
             messages_to_send = [
                 build_stop_message(),
                 build_start_message(current_ts, duration_seconds)
@@ -804,7 +804,7 @@ def decide_max_backup_action(current_ts, max_backup_until, planned_dispatch_unti
         # Notify the user.
         print('Action: Stop Max Backup!\n')
 
-        # Get, sign and send a routable message.
+        # Get the stop message to send.
         messages_to_send = [build_stop_message()]
     # No action is required.
     else:
@@ -896,7 +896,7 @@ def main():
         # Allow time to process previous message.
         if count > 0:
              # Delay in seconds.
-             time.sleep(1)
+             time.sleep(2)
 
         # Get, sign and send a RoutableMessage.
         send_message(

@@ -463,7 +463,7 @@ def evaluate_planned_dispatches(current_ts, octopus_planned_dispatches):
         end = datetime.datetime.fromisoformat(planned_dispatch['end'])
 
         print(
-            f' * {start} -> {end} '
+            f' * {start.astimezone()} -> {end.astimezone()} '
             f'({planned_dispatch["energyAddedKwh"]} kW via {planned_dispatch["type"].title()})'
         )
 
@@ -705,7 +705,7 @@ def main():
         # Allow time to process previous message.
         if count > 0:
              # Delay in seconds.
-             time.sleep(1)
+             time.sleep(2)
 
         # Get, sign and send a RoutableMessage.
         send_message(
