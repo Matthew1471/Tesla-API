@@ -724,7 +724,8 @@ def main():
                 queue='Tesla_Unicorn_HAT_HD',
                 durable=False,
                 exclusive=True,
-                auto_delete=True
+                auto_delete=True,
+                arguments={'x-max-length': 1}
             )
 
             # Bind the queue to the exchange (if it is not already bound).
@@ -759,33 +760,28 @@ def main():
                         # Log this non-critial often transient error.
                         print(f'{datetime.datetime.now()} - Weather API returned bad JSON:\n {exception}', file=sys.stderr)
 
-                # AMQP get a meter response.
-                while True:
-                    # Get a message.
-                    method, _, body = amqp_channel.basic_get(
-                        queue=amqp_result.method.queue,
-                        auto_ack=True
-                    )
+                # Attempt to get a message from AMQP.
+                method, _, body = amqp_channel.basic_get(
+                    queue=amqp_result.method.queue,
+                    auto_ack=True
+                )
 
-                    # Was there a message?
-                    if method:
-                        # If there are more messages keep consuming until this is the last one.
-                        if method.message_count > 0:
-                            continue
+                # Was there a message?
+                if method:
+                    # Parse the message.
+                    json_object = json.loads(body)
 
-                        json_object = json.loads(body)
-                        timestamp = json_object['timestamp']
+                    # Get the creation timestamp of the message.
+                    timestamp = json_object['timestamp']
 
-                        state_of_energy = json_object.get('state_of_energy')
+                    # Get the storage system charge level.
+                    state_of_energy = json_object.get('state_of_energy')
 
-                        # Take the cumulative values across all phases.
-                        meter_readings = json_object['readings']
-                        site_power = meter_readings.get('site', {}).get('instant_power')
-                        consumption_power = meter_readings.get('load', {}).get('instant_power')
-                        production_power = meter_readings.get('solar', {}).get('instant_power')
-                    else:
-                        # Ran out of responses.
-                        break
+                    # Get the meter reading values.
+                    meter_readings = json_object['readings']
+                    site_power = meter_readings.get('site', {}).get('instant_power')
+                    consumption_power = meter_readings.get('load', {}).get('instant_power')
+                    production_power = meter_readings.get('solar', {}).get('instant_power')
 
                 # Check the data is within the last 5 seconds.
                 if timestamp > time.time()-5:
